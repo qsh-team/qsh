@@ -1,0 +1,11 @@
+#stuff http://about.travis-ci.org/docs/
+
+#Default test script = "npm test"
+language: node_js
+
+node_js:
+  - '11'
+
+after_success:
+  - npm install
+  - npm run test
