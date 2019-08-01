@@ -1,0 +1,2 @@
+#!/bin/sh
+NODE_PATH=$HOME/.qsh_install/qsh_core $HOME/.qsh_install/node/bin/node $HOME/.qsh_install/qsh_core/node_modules/qsh/lib/index.js

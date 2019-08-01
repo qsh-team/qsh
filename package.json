@@ -1,0 +1,41 @@
+{
+  "name": "qsh",
+  "version": "1.0.9",
+  "description": "",
+  "main": "index.js",
+  "files": [
+    "bin",
+    "lib",
+    "vendor"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsc -w"
+  },
+  "bin": {
+    "qsh": "./bin/qsh"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@expo/ppath": "^3.2.2",
+    "ansi-colors": "^4.1.1",
+    "bash-parser": "^0.5.0",
+    "branch-name": "^1.0.0",
+    "cross-spawn": "^6.0.5",
+    "enquirer": "^2.3.1",
+    "exit-hook": "^2.2.0",
+    "fix-path": "^2.1.0",
+    "lodash": "^4.17.15",
+    "powerline-statusbar": "^1.0.4",
+    "shelljs": "^0.8.3",
+    "typed-emitter": "^0.1.0",
+    "typescript": "^3.5.3"
+  },
+  "devDependencies": {
+    "@types/cross-spawn": "^6.0.0",
+    "@types/lodash": "^4.14.136",
+    "@types/node": "^12.6.8",
+    "@types/shelljs": "^0.8.5"
+  }
+}
