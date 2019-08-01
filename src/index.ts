@@ -1,1 +1,2 @@
-import './qsh';
+import QSH from './qsh';
+new QSH();

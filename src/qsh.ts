@@ -127,6 +127,8 @@ export default class QSH {
       }
       
     }
+
+    process.exit(0);
 }
 
   public registerCommand(commandName: string, func: (commandName: string, args: string[]) => Promise<void>) {
@@ -137,5 +139,3 @@ export default class QSH {
     this.init();
   }
 }
-
-new QSH();
