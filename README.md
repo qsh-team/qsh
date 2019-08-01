@@ -13,3 +13,7 @@
 ```shell
 curl https://cdn.jsdelivr.net/gh/qsh-team/qsh@bdd493f/install_cn.sh | bash
 ```
+
+## Screenshot
+
+![preview](./img/screenshot.png)
