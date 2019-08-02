@@ -1,2 +1,3 @@
 import QSH from './qsh';
-new QSH();
+const qsh = new QSH();
+qsh.run();

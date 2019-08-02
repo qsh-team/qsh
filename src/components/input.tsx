@@ -16,9 +16,8 @@ interface ITextInputPublicProps {
 	focus: boolean,
 	mask: string,
 	highlightPastedText: string,
-	showCursor: boolean,
 	onChange: (str: string) => void,
-	onSubmit: (str: string) => void,
+	onSubmit: (str: string | null) => void,
 	onTab: () => void,
 	prompt: string,
 	qsh: QSH,
@@ -51,9 +50,10 @@ class TextInput extends PureComponent<ITextInputProps> {
 		cursorWidth: 0,
 		completes: [] as IAutoComplete[],
 		selectMode: false,
+		showCursor: true,
 	}
 
-	private _isMounted: boolean = false;
+	private _isMounted: boolean = true;
 	private _currentInputForComplete = '';
 
 	private get isMounted() {
@@ -90,8 +90,8 @@ class TextInput extends PureComponent<ITextInputProps> {
 	}
 
 	render() {
-		const {value, placeholder, showCursor, focus, mask, highlightPastedText, prompt} = this.props;
-		const {cursorOffset, cursorWidth, selectMode, completes} = this.state;
+		const {value, placeholder, focus, mask, highlightPastedText, prompt} = this.props;
+		const {cursorOffset, cursorWidth, showCursor, selectMode, completes} = this.state;
 		const hasValue = value.length > 0;
 		let renderedValue = value;
 		const cursorActualWidth = highlightPastedText ? cursorWidth : 0;
@@ -126,13 +126,12 @@ class TextInput extends PureComponent<ITextInputProps> {
 		}
 
 		const renderCompleteWithCursor = (marginLeft: number) => {
-			return completes ? <Complete key={this._currentInputForComplete} items={completes.map(item => {
+			return completes ? <Complete items={completes.map(item => {
 				return {
 					text: item.text,
 					value: item.full,
 				}
 			})}
-			value="test"
 			onChange={this.handleCompleteChange}
 			onSubmit={this.handleCompleteSubmit}
 			selectMode={selectMode}
@@ -162,6 +161,9 @@ class TextInput extends PureComponent<ITextInputProps> {
 		);
 	}
 
+	handleCtrlC() {
+		this.submit(null);
+	}
 	
 	componentDidMount() {
 		const {stdin, setRawMode} = this.props;
@@ -180,49 +182,70 @@ class TextInput extends PureComponent<ITextInputProps> {
 		setRawMode(false);
 	}
 
+	submit(value: string | null) {
+		const {
+			onSubmit,
+		} = this.props;
+		this.setState({
+			...this.state,
+			completes: [],
+			showCursor: false,
+		}, () => {
+			if (onSubmit) {
+				onSubmit(value);
+			}	
+		})
+	}
+
 	handleInput = (data: Buffer) => {
-		const {value: originalValue, focus, showCursor, mask, onChange, onSubmit, setRawMode} = this.props;
-		const {cursorOffset: originalCursorOffset, selectMode} = this.state;
+		const {value: originalValue, focus, mask, onChange, onSubmit, setRawMode} = this.props;
+		const {cursorOffset: originalCursorOffset, selectMode, showCursor} = this.state;
 
 		if (focus === false || this.isMounted === false) {
 			return;
 		}
+		
 
 		const s = String(data);
 
-		if (s === ARROW_UP || s === ARROW_DOWN || s === CTRL_C) {
+		if (s === ARROW_UP || s === ARROW_DOWN) {
 			return;
 		}
+
+		if (s === ENTER && selectMode) {
+			// pass
+			return;
+		}
+
 
 		if (s === ENTER) {
 			setRawMode(false);
 
-			this.setState({
-				...this.state,
-				completes: [],
-			}, () => {
-				if (onSubmit) {
-					onSubmit(originalValue);
-				}	
-			})
+			this.submit(originalValue);
 		
 			return;
 		}
 
-		if (s === TAB) {
-			// not in select, start now
-			if (!selectMode && this._isMounted) {
+		if (s === TAB && selectMode) {
+			return;
+		}
+
+		if (s === TAB && !selectMode) {
+			if (this._isMounted) {
 				this.setState({
 					...this.state,
 					selectMode: true,
 				});
-			} else {
-				// is just in select
-				// pass, <Complete /> will handle this by own
 			}
-
 			return;
 		}
+
+		// if (selectMode) {
+		// 	this.setState({
+		// 		...this.state,
+		// 		selectMode: false,
+		// 	});
+		// }
 
 		let cursorOffset = originalCursorOffset;
 		let value = originalValue;

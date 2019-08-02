@@ -1,5 +1,5 @@
 declare namespace JSX {
     interface IntrinsicElements {
-        box: any
+        box: any;
     }
 }

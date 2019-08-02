@@ -2,16 +2,14 @@ import React, { useEffect } from 'react';
 import { useState, useRef } from 'react';
 import { StdinContext, Box, Color } from 'ink';
 import _ from 'lodash';
-import { TAB } from './const';
+import { TAB, ENTER } from './const';
 
 
 export interface ICompleteItem {
     text: string,
-    value: string,
 }
 
 interface ICompletePublicProps {
-	value: string,
 	onChange: (str: string) => void,
     onSubmit: (str: string) => void,
     items: ICompleteItem[],
@@ -56,7 +54,9 @@ function Complete({
     onChange,
     width,
     marginLeft,
+    onSubmit,
 }: ICompleteProps) {
+
     const MAX_ITEMS = 5;
     const MAX_WIDTH = width;
     const displayItem = items.slice(0, MAX_ITEMS);
@@ -64,21 +64,31 @@ function Complete({
     const [selectIndex, setSelectIndex] = useState(-1);
     const isMounted = useRef(true);
 
+    const [selectModeState, setSelectModeState] = useState(selectMode);
+
+    useEffect(() => {
+        setSelectModeState(selectMode);
+    }, [selectMode]);
+
     const handleKey = (data: Buffer) => {
-        const s = String(data);
-        const len = items.length;
-        if (s === TAB) {
-            // next
-            setSelectIndex(selectIndex => {
-                const target = selectIndex + 1;
-                return target >= len ? target - len: target;
-            });
+        if (selectMode) {
+            const s = String(data);
+            const len = items.length;
+            if (s === TAB) {
+                // next
+                setSelectIndex(selectIndex => {
+                    const target = selectIndex + 1;
+                    return target >= len ? target - len: target;
+                });
+            } else if (s === ENTER) {
+                onSubmit(items[selectIndex].text);
+            }
         }
     }
 
     useEffect(() => {
         if (items[selectIndex]) {
-            onChange && onChange(items[selectIndex].value);
+            onChange && onChange(items[selectIndex].text);
         }
     }, [selectIndex]);
 

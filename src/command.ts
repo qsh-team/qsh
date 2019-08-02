@@ -1,26 +1,26 @@
-import QSH from "./qsh";
+import QSH from './qsh';
 // @ts-ignore
 import parse from 'bash-parser';
 
 import spawn from 'cross-spawn';
-import { ChildProcess, exec } from "child_process";
+import { ChildProcess, exec } from 'child_process';
 
 interface IExecInfo {
-    execPromise: Promise<ChildProcess|void>,
-    processExitPromise: Promise<ChildProcess|void>
+    execPromise: Promise<ChildProcess|void>;
+    processExitPromise: Promise<ChildProcess|void>;
 }
 
 // $PWD/test => /real/path/to/pwd/test
 // ~/test => /path/to/home/test
 function replaceEnvPATH(raw: string) {
-    return raw.replace(/^~/, process.env.HOME || '').replace(/\$([^/ ]+)/g, (_,n) => process.env[n] || '');
+    return raw.replace(/^~/, process.env.HOME || '').replace(/\$([^/ ]+)/g, (_, n) => process.env[n] || '');
 }
 
 function execAST(ast: any, qsh: QSH): IExecInfo {
     if (ast.type === 'Script') {
         let last;
         for (let command of ast.commands) {
-           last = execAST(command, qsh);
+            last = execAST(command, qsh);
         }
         if (!last) {
             throw new Error('unkown commands');
@@ -29,7 +29,7 @@ function execAST(ast: any, qsh: QSH): IExecInfo {
     } else if (ast.type === 'Command') {
         const name = replaceEnvPATH(ast.name.text);
         let args = ast.suffix && ast.suffix.map((item: any) => item.text) || [];
-        
+
         args = args.map((item: string) => replaceEnvPATH(item));
         const async = ast.async;
 
@@ -39,14 +39,14 @@ function execAST(ast: any, qsh: QSH): IExecInfo {
             return {
                 processExitPromise,
                 execPromise: processExitPromise,
-            }
+            };
         }
 
         const childProcess = spawn(name, args, {
             stdio: 'inherit',
         });
 
-       
+
         const processExitPromise: Promise<ChildProcess> = new Promise((resolve, reject) => {
             childProcess.on('exit', _ => {
                 resolve(childProcess);

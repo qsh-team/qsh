@@ -1,3 +1,5 @@
+/* global define, it, describe */
+
 import QSH from '../src/qsh';
 
 // @ts-ignore
@@ -10,7 +12,7 @@ const timeout = async function(ms: number) {
     return new Promise(resolve => {
         setTimeout(resolve, ms);
     });
-}
+};
 
 const WAIT_MS = 200;
 
@@ -22,7 +24,8 @@ describe('Terminal', function() {
         sandbox.on(process, 'exit', chai.spy.returns(0));
 
         // mockIO.start();
-        new QSH();
+        const qsh = new QSH();
+        qsh.run();
         await timeout(WAIT_MS);
         process.stdin.emit('data', Buffer.from('exit\n'));
 
