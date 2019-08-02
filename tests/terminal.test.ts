@@ -7,6 +7,7 @@ import mockIO from 'mock-stdio';
 
 import spies from 'chai-spies';
 import chai from 'chai';
+import { ENTER } from '../src/components/const';
 
 const timeout = async function(ms: number) {
     return new Promise(resolve => {
@@ -27,7 +28,8 @@ describe('Terminal', function() {
         const qsh = new QSH();
         qsh.run();
         await timeout(WAIT_MS);
-        process.stdin.emit('data', Buffer.from('exit\n'));
+        process.stdin.emit('data', Buffer.from('exit'));
+        process.stdin.emit('data', Buffer.from(ENTER));
 
         // const result = mockIO.end();
 
