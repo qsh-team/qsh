@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { StdinContext, Box, Color } from 'ink';
 import _ from 'lodash';
-import { TAB, ENTER } from './const';
+import { TAB, ENTER, AUTO_COMPLETE_MAX_ITEMS } from './const';
 
 export interface ICompleteItem {
     text: string;
+    value: string;
 }
 
 interface ICompletePublicProps {
@@ -47,6 +48,7 @@ function Progress({ progress, height, whole }: IProgressProps) {
     );
 }
 
+
 function Complete({
     stdin,
     setRawMode,
@@ -57,18 +59,14 @@ function Complete({
     marginLeft,
     onSubmit
 }: ICompleteProps) {
-    const MAX_ITEMS = 5;
+    const MAX_ITEMS = AUTO_COMPLETE_MAX_ITEMS;
     const MAX_WIDTH = width;
     const displayItem = items.slice(0, MAX_ITEMS);
 
     const [selectIndex, setSelectIndex] = useState(-1);
     const isMounted = useRef(true);
 
-    const [selectModeState, setSelectModeState] = useState(selectMode);
-
-    useEffect(() => {
-        setSelectModeState(selectMode);
-    }, [selectMode]);
+    const selectIndexRef = useRef(-1);
 
     const handleKey = (data: Buffer) => {
         if (selectMode) {
@@ -81,23 +79,26 @@ function Complete({
                     return target >= len ? target - len : target;
                 });
             } else if (s === ENTER) {
-                onSubmit(items[selectIndex].text);
+                onSubmit(items[selectIndexRef.current].value);
             }
         }
     };
 
     useEffect(() => {
         if (items[selectIndex]) {
-            onChange && onChange(items[selectIndex].text);
+            selectIndexRef.current = selectIndex;
+            onChange && onChange(items[selectIndex].value);
         }
     }, [selectIndex]);
 
     useEffect(() => {
-        stdin.on('data', handleKey);
+        if (selectMode) {
+            stdin.on('data', handleKey);
+        }
         return function cleanup() {
             stdin.removeListener('data', handleKey);
         };
-    }, []);
+    }, [selectMode]);
 
     return (
         <Box marginLeft={marginLeft} flexDirection="column">

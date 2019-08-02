@@ -81,6 +81,7 @@ class TextInput extends PureComponent<ITextInputProps> {
         super(context, props);
         this.handleCompleteChange = this.handleCompleteChange.bind(this);
         this.handleInput = this.handleInput.bind(this);
+        this.handleCompleteSubmit = this.handleCompleteSubmit.bind(this);
     }
 
     public render() {
@@ -192,7 +193,15 @@ class TextInput extends PureComponent<ITextInputProps> {
         // onChange && onChange(val);
     }
 
-    private handleCompleteSubmit() {}
+    private handleCompleteSubmit(result: string) {
+        this.props.onChange && this.props.onChange(result);
+        this.setState({
+            ...this.state,
+            selectMode: false,
+            completes: [],
+            cursorOffset: result.length
+        });
+    }
 
     private get promptLength() {
         return colors.unstyle(this.props.prompt).length;
@@ -294,7 +303,8 @@ class TextInput extends PureComponent<ITextInputProps> {
                 }
             },
             SELECT_MODE: {
-                [ENTER]: (key: string) => {}
+                [ENTER]: (key: string) => {},
+                [OTHER_KEY]: () => {},
             }
         };
 

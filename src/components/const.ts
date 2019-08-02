@@ -8,4 +8,5 @@ export const BACKSPACE = '\x08';
 export const DELETE = '\x7F';
 export const TAB = '\t';
 
-export const AUTO_COMPLETE_WIDTH = 20;
+export const AUTO_COMPLETE_WIDTH = 30;
+export const AUTO_COMPLETE_MAX_ITEMS = 8;
