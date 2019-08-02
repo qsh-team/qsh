@@ -5,18 +5,20 @@ import parse from 'bash-parser';
 import spawn from 'cross-spawn';
 import { ChildProcess, exec } from 'child_process';
 
-interface IExecInfo {
-    execPromise: Promise<ChildProcess|void>;
-    processExitPromise: Promise<ChildProcess|void>;
+interface ExecInfo {
+    execPromise: Promise<ChildProcess | void>;
+    processExitPromise: Promise<ChildProcess | void>;
 }
 
 // $PWD/test => /real/path/to/pwd/test
 // ~/test => /path/to/home/test
 function replaceEnvPATH(raw: string) {
-    return raw.replace(/^~/, process.env.HOME || '').replace(/\$([^/ ]+)/g, (_, n) => process.env[n] || '');
+    return raw
+        .replace(/^~/, process.env.HOME || '')
+        .replace(/\$([^/ ]+)/g, (_, n) => process.env[n] || '');
 }
 
-function execAST(ast: any, qsh: QSH): IExecInfo {
+function execAST(ast: any, qsh: QSH): ExecInfo {
     if (ast.type === 'Script') {
         let last;
         for (let command of ast.commands) {
@@ -28,37 +30,35 @@ function execAST(ast: any, qsh: QSH): IExecInfo {
         return last;
     } else if (ast.type === 'Command') {
         const name = replaceEnvPATH(ast.name.text);
-        let args = ast.suffix && ast.suffix.map((item: any) => item.text) || [];
+        let args = (ast.suffix && ast.suffix.map((item: any) => item.text)) || [];
 
         args = args.map((item: string) => replaceEnvPATH(item));
         const async = ast.async;
-
 
         if (qsh.commands[name]) {
             const processExitPromise = qsh.commands[name](name, args);
             return {
                 processExitPromise,
-                execPromise: processExitPromise,
+                execPromise: processExitPromise
             };
         }
 
         const childProcess = spawn(name, args, {
-            stdio: 'inherit',
+            stdio: 'inherit'
         });
-
 
         const processExitPromise: Promise<ChildProcess> = new Promise((resolve, reject) => {
             childProcess.on('exit', _ => {
                 resolve(childProcess);
             });
-            childProcess.on('error', (e) => {
+            childProcess.on('error', e => {
                 reject(e);
             });
         });
 
         return {
             processExitPromise,
-            execPromise: processExitPromise,
+            execPromise: processExitPromise
         };
     }
     throw new Error('Unsupport command');

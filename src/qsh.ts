@@ -4,7 +4,6 @@ import exitHook from 'exit-hook';
 
 import fs from 'fs';
 
-
 import { IAutoComplete } from './functions/auto-complete';
 import EventEmitter from 'events';
 import TypedEmitter from 'typed-emitter';
@@ -15,9 +14,7 @@ import ppath from '@expo/ppath';
 // @ts-ignore
 import fixPath from 'fix-path';
 
-import {
-    QSH_ROOT_DIR, QSH_HISTORY_FILE,
-} from './const';
+import { QSH_ROOT_DIR, QSH_HISTORY_FILE } from './const';
 import initBuiltin from './builtin/index';
 
 import colors from 'ansi-colors';
@@ -25,7 +22,7 @@ import colors from 'ansi-colors';
 import branchName from 'branch-name';
 import execCommand from './command';
 
-export interface IQSHEvent {
+export interface QSHEvent {
     init: () => void;
     exec: (command: string) => void;
     input: (inputString: string) => void;
@@ -33,14 +30,16 @@ export interface IQSHEvent {
     exit: () => void;
 }
 
-interface ICommandMap {
+interface CommandMap {
     [name: string]: (name: string, args: string[]) => Promise<void>;
 }
 export default class QSH {
-    public event: TypedEmitter<IQSHEvent> = new EventEmitter() as TypedEmitter<IQSHEvent>;
+    public event: TypedEmitter<QSHEvent> = new EventEmitter() as TypedEmitter<
+    QSHEvent
+    >;
     public history: string[] = [];
 
-    public commands: ICommandMap = {};
+    public commands: CommandMap = {};
     public options = {
         promopt: (callback: (str: string) => void) => {
             // callback(colors.green('ҩ~ '));
@@ -59,9 +58,8 @@ export default class QSH {
             return function cleanup() {
                 clearInterval(timer);
             };
-
         },
-        historyLength: 5000,
+        historyLength: 5000
     };
 
     private _keepRunning: boolean = true;
@@ -70,21 +68,21 @@ export default class QSH {
         this.init();
     }
 
-    public registerCommand(commandName: string, func: (commandName: string, args: string[]) => Promise<void>) {
+    public registerCommand(
+        commandName: string,
+        func: (commandName: string, args: string[]) => Promise<void>
+    ) {
         this.commands[commandName] = func;
     }
 
-
-
     private async initHome() {
-    // const unlock = await lock();
+        // const unlock = await lock();
         if (!fs.existsSync(QSH_ROOT_DIR)) {
             fs.mkdirSync(QSH_ROOT_DIR);
         }
     }
 
     private async init() {
-
         fixPath();
         await this.initHome();
 
@@ -99,7 +97,6 @@ export default class QSH {
 
         this.event.emit('init');
 
-
         this.startLoop();
     }
 
@@ -112,7 +109,11 @@ export default class QSH {
     }
 
     private saveHistory() {
-        fs.writeFileSync(QSH_HISTORY_FILE, this.history.slice(0, this.options.historyLength).join('\n'), 'utf-8');
+        fs.writeFileSync(
+            QSH_HISTORY_FILE,
+            this.history.slice(0, this.options.historyLength).join('\n'),
+            'utf-8'
+        );
     }
 
     private async startLoop() {
@@ -125,10 +126,7 @@ export default class QSH {
 
             if (input) {
                 try {
-                    const {
-                        processExitPromise,
-                        execPromise,
-                    } = execCommand(this, input);
+                    const { processExitPromise, execPromise } = execCommand(this, input);
                     await execPromise;
 
                     this.history.unshift(input);
@@ -136,11 +134,8 @@ export default class QSH {
                     console.error(e);
                 }
             }
-
         }
 
         process.exit(0);
     }
-
-
 }

@@ -1,49 +1,50 @@
-import React, { useEffect } from 'react';
-import { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { StdinContext, Box, Color } from 'ink';
 import _ from 'lodash';
 import { TAB, ENTER } from './const';
 
-
 export interface ICompleteItem {
-    text: string,
+    text: string;
 }
 
 interface ICompletePublicProps {
-	onChange: (str: string) => void,
-    onSubmit: (str: string) => void,
-    items: ICompleteItem[],
-    selectMode: boolean,
-    width: number,
-    marginLeft: number,
+    onChange: (str: string) => void;
+    onSubmit: (str: string) => void;
+    items: ICompleteItem[];
+    selectMode: boolean;
+    width: number;
+    marginLeft: number;
 }
 
 interface ICompleteProps extends ICompletePublicProps {
-	stdin: NodeJS.ReadStream,
-	setRawMode: ((mode: boolean) => void),
+    stdin: NodeJS.ReadStream;
+    setRawMode: (mode: boolean) => void;
 }
 
 interface IProgressProps {
-    progress: number,
-    height: number,
-    whole: number,
+    progress: number;
+    height: number;
+    whole: number;
 }
 
-function Progress({
-    progress,
-    height,
-    whole,
-}: IProgressProps) {
+function Progress({ progress, height, whole }: IProgressProps) {
     const indicatorIndex = Math.floor((progress / whole) * height);
-    return <Box flexDirection="column">
-        {new Array(height).fill(1).map((item, index) => {
-            return <Box key={index}>
-                <Color whiteBright bgHex={indicatorIndex === index ? '#00bdbf': '#2f2e2f'}>
-                    <Box width={1}>{' '}</Box>
-                </Color>
-            </Box>
-        })}
-    </Box>;
+    return (
+        <Box flexDirection="column">
+            {new Array(height).fill(1).map((item, index) => {
+                return (
+                    <Box key={index}>
+                        <Color
+                            whiteBright
+                            bgHex={indicatorIndex === index ? '#00bdbf' : '#2f2e2f'}
+                        >
+                            <Box width={1}> </Box>
+                        </Color>
+                    </Box>
+                );
+            })}
+        </Box>
+    );
 }
 
 function Complete({
@@ -54,9 +55,8 @@ function Complete({
     onChange,
     width,
     marginLeft,
-    onSubmit,
+    onSubmit
 }: ICompleteProps) {
-
     const MAX_ITEMS = 5;
     const MAX_WIDTH = width;
     const displayItem = items.slice(0, MAX_ITEMS);
@@ -78,13 +78,13 @@ function Complete({
                 // next
                 setSelectIndex(selectIndex => {
                     const target = selectIndex + 1;
-                    return target >= len ? target - len: target;
+                    return target >= len ? target - len : target;
                 });
             } else if (s === ENTER) {
                 onSubmit(items[selectIndex].text);
             }
         }
-    }
+    };
 
     useEffect(() => {
         if (items[selectIndex]) {
@@ -96,40 +96,48 @@ function Complete({
         stdin.on('data', handleKey);
         return function cleanup() {
             stdin.removeListener('data', handleKey);
-        }
+        };
     }, []);
 
-    return <Box marginLeft={marginLeft} flexDirection="column">
-        <Box width={MAX_WIDTH}>
-            <Box flexDirection="column">
-                {
-                    displayItem.map((item, index) => {
+    return (
+        <Box marginLeft={marginLeft} flexDirection="column">
+            <Box width={MAX_WIDTH}>
+                <Box flexDirection="column">
+                    {displayItem.map((item, index) => {
                         const COLOR_BG_MENU_BRIGHT = '#44c1c3';
                         const COLOR_BG_MENU = '#00989b';
-                        const isSelect = (index === selectIndex && selectMode);
-                        const color = isSelect? '#000000': '#ffffff';
-                        const bgColor = isSelect? COLOR_BG_MENU_BRIGHT: COLOR_BG_MENU;
-                       
+                        const isSelect = index === selectIndex && selectMode;
+                        const color = isSelect ? '#000000' : '#ffffff';
+                        const bgColor = isSelect ? COLOR_BG_MENU_BRIGHT : COLOR_BG_MENU;
 
-                        return <Box key={index} width={MAX_WIDTH - 1}>
-                            <Color hex={color} bgHex={bgColor}>
-                                <Box width={MAX_WIDTH} textWrap="truncate-middle">{item.text.padEnd(MAX_WIDTH)}</Box>
-                            </Color>
-                        </Box>;
-                    })
-                }
+                        return (
+                            <Box key={index} width={MAX_WIDTH - 1}>
+                                <Color hex={color} bgHex={bgColor}>
+                                    <Box width={MAX_WIDTH} textWrap="truncate-middle">
+                                        {item.text.padEnd(MAX_WIDTH)}
+                                    </Box>
+                                </Color>
+                            </Box>
+                        );
+                    })}
+                </Box>
+                <Progress
+                    height={displayItem.length}
+                    progress={0}
+                    whole={displayItem.length}
+                ></Progress>
             </Box>
-            <Progress height={displayItem.length} progress={0} whole={displayItem.length}></Progress>
         </Box>
-    </Box>
-    ;
+    );
 }
 
 export default function CompleteWithStdin(props: ICompletePublicProps) {
-    return <StdinContext.Consumer>
-    {({stdin, setRawMode}) => (
-        // @ts-ignore
-        <Complete {...props} stdin={stdin} setRawMode={setRawMode}/>
-    )}
-</StdinContext.Consumer>
+    return (
+        <StdinContext.Consumer>
+            {({ stdin, setRawMode }) => (
+                // @ts-ignore
+                <Complete {...props} stdin={stdin} setRawMode={setRawMode} />
+            )}
+        </StdinContext.Consumer>
+    );
 }

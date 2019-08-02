@@ -1,4 +1,4 @@
-import QSH from "../qsh";
+import QSH from '../qsh';
 import shell from 'shelljs';
 
 export default function initCd(qsh: QSH) {

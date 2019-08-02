@@ -1,4 +1,4 @@
-import QSH from "../qsh";
+import QSH from '../qsh';
 
 export default function initExit(qsh: QSH) {
     qsh.event.on('init', () => {

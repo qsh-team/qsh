@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect, useLayoutEffect, Component } from 'react';
+import React, {
+    useState,
+    useRef,
+    useEffect,
+    useLayoutEffect,
+    Component
+} from 'react';
 import { render, Box } from 'ink';
 
 import TextInput from './input';
@@ -6,21 +12,15 @@ import QSH from '../qsh';
 
 import Complete from './complete';
 
-
 import _ from 'lodash';
 
-interface IRootComponentProps {
+interface RootComponentProps {
     onSubmit: (text: string | null) => void;
     qsh: QSH;
     stdin: NodeJS.ReadStream;
 }
 
-
-const RootComponent = ({
-    onSubmit,
-    qsh,
-}: IRootComponentProps) => {
-
+const RootComponent = ({ onSubmit, qsh }: RootComponentProps) => {
     const [input, setInput] = useState('');
 
     const [promptCache, setPromptCache] = useState('');
@@ -48,27 +48,23 @@ const RootComponent = ({
         onSubmit(text);
     };
 
+    const handleCompleteChange = () => {};
 
-    const handleCompleteChange = () => {
+    const handleCompleteSubmit = () => {};
 
-    };
-
-    const handleCompleteSubmit = () => {
-
-    };
-
-    return <Box>
-        {/*
+    return (
+        <Box>
+            {/*
 // @ts-ignore */}
-        <TextInput
-            value={input}
-            onChange={handleChange}
-            onSubmit={handleSubmit}
-            qsh={qsh}
-            prompt={promptCache}
-        />
-    </Box>;
+            <TextInput
+                value={input}
+                onChange={handleChange}
+                onSubmit={handleSubmit}
+                qsh={qsh}
+                prompt={promptCache}
+            />
+        </Box>
+    );
 };
-
 
 export default RootComponent;

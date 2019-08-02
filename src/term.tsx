@@ -12,8 +12,9 @@ export default class Term {
     }
 
     public async run(): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const handleSubmit = async (text: string | null) => {
+        return new Promise((resolve, reject): void => {
+            let app: Instance;
+            const handleSubmit = async (text: string | null): Promise<void> => {
                 app.unmount();
                 await app.waitUntilExit();
                 if (text) {
@@ -22,11 +23,20 @@ export default class Term {
                     reject(new Error('Cancel by CtrlC'));
                 }
             };
-            const app = render(<StdinContext.Consumer>
-                {({ stdin, setRawMode }) => (<RootComponent stdin={stdin} qsh={this._qsh} onSubmit={handleSubmit} />)}
-            </StdinContext.Consumer>, {
-                exitOnCtrlC: false,
-            });
+            app = render(
+                <StdinContext.Consumer>
+                    {({ stdin }): JSX.Element => (
+                        <RootComponent
+                            stdin={stdin}
+                            qsh={this._qsh}
+                            onSubmit={handleSubmit}
+                        />
+                    )}
+                </StdinContext.Consumer>,
+                {
+                    exitOnCtrlC: false
+                }
+            );
         });
     }
 }
