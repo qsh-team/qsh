@@ -8,7 +8,7 @@ import EventEmitter from "events";
 import TypedEmitter from "typed-emitter";
 
 import _ from 'lodash';
-import { IAutoComplete } from './auto-complete';
+import { IAutoComplete } from './functions/auto-complete';
 
 import colors from 'ansi-colors';
 

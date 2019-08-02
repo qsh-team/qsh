@@ -5,7 +5,7 @@ import exitHook from 'exit-hook';
 import fs from 'fs';
 
 
-import { IAutoComplete } from './auto-complete';
+import { IAutoComplete } from './functions/auto-complete';
 import EventEmitter from "events";
 import TypedEmitter from "typed-emitter";
 
@@ -18,7 +18,6 @@ import fixPath from 'fix-path';
 import {
   QSH_ROOT_DIR, QSH_HISTORY_FILE,
 } from './const';
-import initAutoComplete from './auto-complete';
 import initCommand from './command';
 import initBuiltin from './builtin/index';
 import execCommand from './command';
@@ -43,20 +42,24 @@ export default class QSH {
 
   public commands: ICommandMap = {};
   public options = {
-    promopt: async (callback: (str: string) => boolean) => {
+    promopt: (callback: (str: string) => void) => {
       // callback(colors.green('ҩ~ '));
       // try {
       //   const name = await branchName.get();
       //   callback(colors.green(`ҩ${colors.blue('[' + name + ']')}~ `));
       // } catch (e) {}
 
-      callback(colors.green(`ҩ ${ppath(process.cwd())} > `));
-      // const timer = setInterval(() => {
-      //   const keepRunning = callback(colors.green(`ҩ ${new Date().toLocaleTimeString()} ~ `));
-      //   if (!keepRunning) {
-      //     clearInterval(timer);
-      //   }
-      // }, 1000);
+      const gen = () => colors.green(`ҩ ${ppath(process.cwd())} [${new Date().toLocaleTimeString()}] > `);
+
+      callback(gen());
+      const timer = setInterval(() => {
+        callback(gen());
+      }, 1000);
+
+      return function cleanup() {
+        clearInterval(timer);
+      }
+      
     },
     historyLength: 5000,
   };
@@ -76,7 +79,6 @@ export default class QSH {
     fixPath();
     await this.initHome();
 
-    initAutoComplete(this);
     initBuiltin(this);
     this.initHistory();
     exitHook(() => {
