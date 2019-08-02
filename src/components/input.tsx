@@ -304,7 +304,7 @@ class TextInput extends PureComponent<ITextInputProps> {
             },
             SELECT_MODE: {
                 [ENTER]: (key: string) => {},
-                [OTHER_KEY]: () => {},
+                [OTHER_KEY]: () => {}
             }
         };
 

@@ -48,7 +48,6 @@ function Progress({ progress, height, whole }: IProgressProps) {
     );
 }
 
-
 function Complete({
     stdin,
     setRawMode,

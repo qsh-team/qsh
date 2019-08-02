@@ -1,6 +1,6 @@
-![Travis (.org) branch](https://img.shields.io/travis/qsh-team/qsh/master?label=TESTING&style=for-the-badge)
+[![Travis (.org) branch](https://img.shields.io/travis/qsh-team/qsh/master?label=TESTING&style=for-the-badge)]()
 ![GitHub top language](https://img.shields.io/github/languages/top/qsh-team/qsh?style=for-the-badge)
-![LGTM Grade](https://img.shields.io/lgtm/grade/javascript/github/qsh-team/qsh?style=for-the-badge)
+[![LGTM Grade](https://img.shields.io/lgtm/grade/javascript/github/qsh-team/qsh?style=for-the-badge)](https://lgtm.com/projects/g/qsh-team/qsh/overview/)
 ![GitHub](https://img.shields.io/github/license/qsh-team/qsh?style=for-the-badge)
 ![npm](https://img.shields.io/npm/v/qsh?style=for-the-badge)
 
