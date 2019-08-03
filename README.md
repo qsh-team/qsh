@@ -1,4 +1,4 @@
-[![Codeship (branch)](https://img.shields.io/codeship/eec620b0-97da-0137-fc7c-7acfd78361b8/master?label=BUILD%20%26%20TESTING&style=for-the-badge)](https://app.codeship.com/projects/eec620b0-97da-0137-fc7c-7acfd78361b8)
+[![Codeship (branch)](https://img.shields.io/codeship/eec620b0-97da-0137-fc7c-7acfd78361b8/master?style=for-the-badge)](https://app.codeship.com/projects/eec620b0-97da-0137-fc7c-7acfd78361b8)
 ![GitHub top language](https://img.shields.io/github/languages/top/qsh-team/qsh?style=for-the-badge)
 [![LGTM Grade](https://img.shields.io/lgtm/grade/javascript/github/qsh-team/qsh?style=for-the-badge)](https://lgtm.com/projects/g/qsh-team/qsh/overview/)
 ![GitHub](https://img.shields.io/github/license/qsh-team/qsh?style=for-the-badge)
