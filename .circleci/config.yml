@@ -7,6 +7,6 @@ jobs:
      # start proprietary DB using private Docker image
      # with credentials stored in the UI
      # build the application image
-     - run: export TERM=xterm npm run docker:build
-     - run: export TERM=xterm npm run docker:lint
-     - run: export TERM=xterm npm run docker:test
+     - run: TERM=xterm npm run docker:build
+     - run: TERM=xterm npm run docker:lint
+     - run: TERM=xterm npm run docker:test
