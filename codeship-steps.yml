@@ -1,0 +1,8 @@
+- type: parallel
+  name: example_parallel_step
+  steps:
+    - service: qsh
+      command: /bin/bash -c "cd /usr/src/app; npm run lint"
+    - service: qsh
+      # shell wrapper not required unless passing along env vars or combining commands
+      command: /bin/bash -c "cd /usr/src/app; npm run test"

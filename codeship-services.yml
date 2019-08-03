@@ -1,0 +1,5 @@
+qsh:
+  build:
+    image: qsh
+    dockerfile: Dockerfile
+  environment:
