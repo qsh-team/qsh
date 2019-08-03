@@ -12,7 +12,11 @@
     "dev": "tsc -w",
     "test": "mocha -r ts-node/register tests/**/*.test.ts",
     "lint": "eslint --fix --ext .tsx,.ts src tests",
-    "pretty": "npx prettier-eslint --parser typescript --write src/**/*.ts src/**/*.tsx tests/**/*.ts test/**/*.tsx"
+    "pretty": "npx prettier-eslint --parser typescript --write src/**/*.ts src/**/*.tsx tests/**/*.ts test/**/*.tsx",
+    "docker:build": "docker build . --tag qsh",
+    "docker:run": "docker run -it qsh /usr/src/app/bin/local",
+    "docker:test": "docker run -it qsh /bin/bash -c \"cd /usr/src/app; npm run test\"",
+    "docker:lint": "docker run -it qsh /bin/bash -c \"cd /usr/src/app; npm run lint\""
   },
   "bin": {
     "qsh": "./bin/qsh"
