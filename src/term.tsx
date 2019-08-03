@@ -11,19 +11,22 @@ export default class Term {
         this._qsh = qsh;
     }
 
+    public shutdown() {
+        this._app && this._app.unmount();
+    }
+
     public async run(): Promise<string> {
         return new Promise((resolve, reject): void => {
-            let app: Instance;
             const handleSubmit = async (text: string | null): Promise<void> => {
-                app.unmount();
-                await app.waitUntilExit();
+                this._app && this._app.unmount();
+                await (this._app && this._app.waitUntilExit());
                 if (text) {
                     resolve(text);
                 } else {
                     reject(new Error('Cancel by CtrlC'));
                 }
             };
-            app = render(
+            this._app = render(
                 <StdinContext.Consumer>
                     {({ stdin }): JSX.Element => (
                         <RootComponent

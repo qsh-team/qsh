@@ -1,18 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { StdinContext, Box, Color } from 'ink';
 import _ from 'lodash';
-import { TAB, ENTER, AUTO_COMPLETE_MAX_ITEMS } from './const';
+import { TAB, ENTER, AUTO_COMPLETE_MAX_ITEMS, ARROW_DOWN } from './const';
+import { CompleteItem } from '../complete-engine';
 
-export interface ICompleteItem {
-    text: string;
-    value: string;
-}
 
 interface ICompletePublicProps {
     onChange: (str: string) => void;
     onSubmit: (str: string) => void;
-    items: ICompleteItem[];
-    selectMode: boolean;
+    items: CompleteItem[];
     width: number;
     marginLeft: number;
 }
@@ -52,7 +48,6 @@ function Complete({
     stdin,
     setRawMode,
     items,
-    selectMode,
     onChange,
     width,
     marginLeft,
@@ -66,21 +61,24 @@ function Complete({
     const isMounted = useRef(true);
 
     const selectIndexRef = useRef(-1);
+    selectIndexRef.current = selectIndex;
+
+    const itemsRef = useRef([] as CompleteItem[]);
+    itemsRef.current = items;
 
     const handleKey = (data: Buffer) => {
-        if (selectMode) {
-            const s = String(data);
-            const len = items.length;
-            if (s === TAB) {
-                // next
-                setSelectIndex(selectIndex => {
-                    const target = selectIndex + 1;
-                    return target >= len ? target - len : target;
-                });
-            } else if (s === ENTER) {
-                onSubmit(items[selectIndexRef.current].value);
-            }
+        const s = String(data);
+        const len = itemsRef.current.length;
+        if (s === TAB) {
+            // next
+            setSelectIndex(selectIndex => {
+                const target = selectIndex + 1;
+                return target >= len ? target - len : target;
+            });
         }
+        // if (s === TAB) {
+        //     onChange(itemsRef.current[selectIndexRef.current].value);
+        // }
     };
 
     useEffect(() => {
@@ -91,13 +89,11 @@ function Complete({
     }, [selectIndex]);
 
     useEffect(() => {
-        if (selectMode) {
-            stdin.on('data', handleKey);
-        }
+        stdin.on('data', handleKey);
         return function cleanup() {
             stdin.removeListener('data', handleKey);
         };
-    }, [selectMode]);
+    }, []);
 
     return (
         <Box marginLeft={marginLeft} flexDirection="column">
@@ -106,7 +102,7 @@ function Complete({
                     {displayItem.map((item, index) => {
                         const COLOR_BG_MENU_BRIGHT = '#44c1c3';
                         const COLOR_BG_MENU = '#00989b';
-                        const isSelect = index === selectIndex && selectMode;
+                        const isSelect = index === selectIndex;
                         const color = isSelect ? '#000000' : '#ffffff';
                         const bgColor = isSelect ? COLOR_BG_MENU_BRIGHT : COLOR_BG_MENU;
 

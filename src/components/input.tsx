@@ -28,7 +28,6 @@ interface ITextInputProps extends ITextInputPublicProps {
     setRawMode: (mode: boolean) => void;
 }
 
-import { autoComplete, IAutoComplete } from '../functions/auto-complete';
 import QSH from '../qsh';
 import {
     ARROW_UP,
@@ -41,8 +40,8 @@ import {
     DELETE,
     AUTO_COMPLETE_WIDTH
 } from './const';
+import { CompleteItem } from '../complete-engine';
 
-const lazyComplete = _.throttle(autoComplete, 100);
 
 class TextInput extends PureComponent<ITextInputProps> {
     private static defaultProps = {
@@ -57,8 +56,8 @@ class TextInput extends PureComponent<ITextInputProps> {
     public state = {
         cursorOffset: (this.props.value || '').length,
         cursorWidth: 0,
-        completes: [] as IAutoComplete[],
-        selectMode: false,
+        completes: [] as CompleteItem[],
+        completeTriggered: 0,
         showCursor: true
     };
 
@@ -82,6 +81,13 @@ class TextInput extends PureComponent<ITextInputProps> {
         this.handleCompleteChange = this.handleCompleteChange.bind(this);
         this.handleInput = this.handleInput.bind(this);
         this.handleCompleteSubmit = this.handleCompleteSubmit.bind(this);
+
+        const originSetState = this.setState;
+        this.setState = (...args) => {
+            if (this.isMounted) {
+                originSetState.apply(this, args);
+            }
+        };
     }
 
     public render() {
@@ -97,8 +103,8 @@ class TextInput extends PureComponent<ITextInputProps> {
             cursorOffset,
             cursorWidth,
             showCursor,
-            selectMode,
-            completes
+            completes,
+            completeTriggered,
         } = this.state;
         const hasValue = value.length > 0;
         let renderedValue = value;
@@ -130,24 +136,18 @@ class TextInput extends PureComponent<ITextInputProps> {
         }
 
         const renderCompleteWithCursor = (marginLeft: number) => {
-            return completes ? (
+            return completeTriggered && completes ? (
                 <Complete
-                    items={completes.map(item => {
-                        return {
-                            text: item.text,
-                            value: item.full
-                        };
-                    })}
+                    items={completes}
                     onChange={this.handleCompleteChange}
                     onSubmit={this.handleCompleteSubmit}
-                    selectMode={selectMode}
                     width={AUTO_COMPLETE_WIDTH}
                     marginLeft={marginLeft}
                 ></Complete>
             ) : null;
         };
 
-        let marginLeft = (cursorOffset + this.promptLength) % this.width;
+        let marginLeft = (completeTriggered + 2 + this.promptLength) % this.width;
 
         if (marginLeft + AUTO_COMPLETE_WIDTH > this.width) {
             marginLeft = this.width - AUTO_COMPLETE_WIDTH;
@@ -187,19 +187,35 @@ class TextInput extends PureComponent<ITextInputProps> {
     }
 
     private handleCompleteChange(val: string) {
-        // const {
-        // onChange,
-        // } = this.props;
-        // onChange && onChange(val);
+        this.completeValue(val);
+    }
+
+    private completeValue(result: string) {
+        const {
+            onChange,
+        } = this.props;
+        const {
+            completeTriggered,
+        } = this.state;
+        const final = this.props.value.slice(0, completeTriggered + 2) + result;
+        onChange(final);
+        this.setState({
+            ...this.state,
+            cursorOffset: final.length,
+        });
     }
 
     private handleCompleteSubmit(result: string) {
-        this.props.onChange && this.props.onChange(result);
+
+        this.completeValue(result);
+        this.clearComplete();
+    }
+
+    private clearComplete() {
         this.setState({
             ...this.state,
-            selectMode: false,
             completes: [],
-            cursorOffset: result.length
+            completeTriggered: 0,
         });
     }
 
@@ -239,8 +255,8 @@ class TextInput extends PureComponent<ITextInputProps> {
         } = this.props;
         const {
             cursorOffset: originalCursorOffset,
-            selectMode,
-            showCursor
+            showCursor,
+            completeTriggered,
         } = this.state;
 
         if (focus === false || this.isMounted === false) {
@@ -253,68 +269,63 @@ class TextInput extends PureComponent<ITextInputProps> {
         let value = originalValue;
         let cursorWidth = 0;
 
+        // some key will reset complete trigger, then give true to this var
+        let resetComplete = false;
+
         const KEY_MAP: any = {
-            [OTHER_KEY]: {
-                [OTHER_KEY]: (key: string) => {
-                    value =
+            [OTHER_KEY]: (key: string) => {
+                value =
             value.substr(0, cursorOffset) +
             s +
             value.substr(cursorOffset, value.length);
-                    cursorOffset += s.length;
+                cursorOffset += s.length;
 
-                    if (s.length > 1) {
-                        cursorWidth = s.length;
-                    }
-                },
-                [ENTER]: (key: string) => {
-                    setRawMode(false);
-                    this.submit(originalValue);
-                },
-                [TAB]: (key: string) => {
-                    if (this._isMounted) {
-                        this.setState({
-                            ...this.state,
-                            selectMode: true
-                        });
-                    }
-                },
-                [ARROW_LEFT]: (key: string) => {
-                    if (showCursor && !mask) {
-                        cursorOffset--;
-                    }
-                },
-                [ARROW_RIGHT]: (key: string) => {
-                    if (showCursor && !mask) {
-                        cursorOffset++;
-                    }
-                },
-                [BACKSPACE]: () => {
-                    value =
-            value.substr(0, cursorOffset - 1) +
-            value.substr(cursorOffset, value.length);
-                    cursorOffset--;
-                },
+                if (s.length > 1) {
+                    cursorWidth = s.length;
+                }
+            },
+            [ENTER]: (key: string) => {
+                setRawMode(false);
+                this.submit(originalValue);
+            },
+            [TAB]: (key: string) => {
 
-                [DELETE]: () => {
-                    value =
-            value.substr(0, cursorOffset - 1) +
-            value.substr(cursorOffset, value.length);
+            },
+            [ARROW_LEFT]: (key: string) => {
+                if (showCursor && !mask) {
                     cursorOffset--;
                 }
             },
-            SELECT_MODE: {
-                [ENTER]: (key: string) => {},
-                [OTHER_KEY]: () => {}
+            [ARROW_RIGHT]: (key: string) => {
+                if (showCursor && !mask) {
+                    cursorOffset++;
+                }
+            },
+            [BACKSPACE]: () => {
+                value =
+            value.substr(0, cursorOffset - 1) +
+            value.substr(cursorOffset, value.length);
+                cursorOffset--;
+            },
+
+            [DELETE]: () => {
+                value =
+            value.substr(0, cursorOffset - 1) +
+            value.substr(cursorOffset, value.length);
+                cursorOffset--;
             }
         };
 
-        const mode = selectMode ? 'SELECT_MODE' : 'NORMAL_MODE';
-
-        const modeKeyBind = KEY_MAP[mode] || KEY_MAP[OTHER_KEY];
-
-        const keyFunc = modeKeyBind[s] || modeKeyBind[OTHER_KEY];
+        const keyFunc = KEY_MAP[s] || KEY_MAP[OTHER_KEY];
 
         keyFunc(s);
+
+        if (resetComplete) {
+            this.setState({
+                ...this.state,
+                completeTriggered: 0,
+            });
+        }
 
         if (cursorOffset < 0) {
             cursorOffset = 0;
@@ -328,23 +339,38 @@ class TextInput extends PureComponent<ITextInputProps> {
         if (value !== originalValue) {
             onChange(value);
 
-            this.triggerComplete(value);
+            if (!completeTriggered && !resetComplete) {
+                this.triggerComplete(value, cursorOffset - 1);
+            }
+            if (completeTriggered && !resetComplete) {
+                this.getComplete(value, completeTriggered, cursorOffset - 1);
+            }
         }
     }
 
-    private async triggerComplete(text: string): Promise<void> {
-        this._currentInputForComplete = text;
-        try {
-            const completes = await lazyComplete(text, this.props.qsh);
-            if (completes && completes.length > 0) {
-                if (this._isMounted) {
-                    this.setState({
-                        ...this.state,
-                        completes
-                    });
-                }
+    private async getComplete(text: string, triggetPos: number, pos: number) {
+        const qsh = this.props.qsh;
+
+        const result = await qsh.completeEngine.complete(text, triggetPos, pos);
+
+        this.setState({
+            ...this.state,
+            completes: result,
+        });
+    }
+
+    private async triggerComplete(text: string, pos: number): Promise<void> {
+        if (!this.state.completeTriggered) {
+            const qsh = this.props.qsh;
+            if (qsh.completeEngine.trigger(text, pos)) {
+                this.setState({
+                    ...this.state,
+                    completeTriggered: pos - 1,
+                });
+
+                this.getComplete(text, pos - 1, pos - 1);
             }
-        } catch (e) {}
+        }
     }
 }
 

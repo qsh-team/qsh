@@ -4,7 +4,6 @@ import exitHook from 'exit-hook';
 
 import fs from 'fs';
 
-import { IAutoComplete } from './functions/auto-complete';
 import EventEmitter from 'events';
 import TypedEmitter from 'typed-emitter';
 
@@ -21,12 +20,14 @@ import colors from 'ansi-colors';
 // @ts-ignore
 import branchName from 'branch-name';
 import execCommand from './command';
+import CompleteEngine from './complete-engine';
+import { initCompleteBackends } from './complete-backends';
 
 export interface QSHEvent {
     init: () => void;
     exec: (command: string) => void;
     input: (inputString: string) => void;
-    'get-complete-done': (completeList: IAutoComplete[]) => void;
+    // 'get-complete-done': (completeList: IAutoComplete[]) => void;
     exit: () => void;
 }
 
@@ -38,6 +39,7 @@ export default class QSH {
     QSHEvent
     >;
     public history: string[] = [];
+    public completeEngine: CompleteEngine = new CompleteEngine();
 
     public commands: CommandMap = {};
     public options = {
@@ -49,7 +51,6 @@ export default class QSH {
             // } catch (e) {}
 
             const gen = () => colors.green(`ҩ ${ppath(process.cwd())} [${new Date().toLocaleTimeString()}] > `);
-
             callback(gen());
             const timer = setInterval(() => {
                 callback(gen());
@@ -63,6 +64,7 @@ export default class QSH {
     };
 
     private _keepRunning: boolean = true;
+    private _term?: Term;
 
     public run() {
         this.init();
@@ -73,6 +75,11 @@ export default class QSH {
         func: (commandName: string, args: string[]) => Promise<void>
     ) {
         this.commands[commandName] = func;
+    }
+
+    public shutdown() {
+        this._keepRunning = false;
+        this.cleanup();
     }
 
     private async initHome() {
@@ -97,6 +104,7 @@ export default class QSH {
 
         this.event.emit('init');
 
+        initCompleteBackends(this.completeEngine);
         this.startLoop();
     }
 
@@ -116,9 +124,15 @@ export default class QSH {
         );
     }
 
+    private cleanup() {
+        this._term && this._term.shutdown();
+        this._term = undefined;
+    }
+
     private async startLoop() {
         while (this._keepRunning) {
             const term = new Term(this);
+            this._term = term;
             let input = '';
             try {
                 input = await term.run();
@@ -136,6 +150,6 @@ export default class QSH {
             }
         }
 
-        process.exit(0);
+        this.cleanup();
     }
 }
