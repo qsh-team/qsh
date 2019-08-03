@@ -42,7 +42,6 @@ import {
 } from './const';
 import { CompleteItem } from '../complete-engine';
 
-
 class TextInput extends PureComponent<ITextInputProps> {
     private static defaultProps = {
         placeholder: '',
@@ -104,7 +103,7 @@ class TextInput extends PureComponent<ITextInputProps> {
             cursorWidth,
             showCursor,
             completes,
-            completeTriggered,
+            completeTriggered
         } = this.state;
         const hasValue = value.length > 0;
         let renderedValue = value;
@@ -191,22 +190,17 @@ class TextInput extends PureComponent<ITextInputProps> {
     }
 
     private completeValue(result: string) {
-        const {
-            onChange,
-        } = this.props;
-        const {
-            completeTriggered,
-        } = this.state;
+        const { onChange } = this.props;
+        const { completeTriggered } = this.state;
         const final = this.props.value.slice(0, completeTriggered + 2) + result;
         onChange(final);
         this.setState({
             ...this.state,
-            cursorOffset: final.length,
+            cursorOffset: final.length
         });
     }
 
     private handleCompleteSubmit(result: string) {
-
         this.completeValue(result);
         this.clearComplete();
     }
@@ -215,7 +209,7 @@ class TextInput extends PureComponent<ITextInputProps> {
         this.setState({
             ...this.state,
             completes: [],
-            completeTriggered: 0,
+            completeTriggered: 0
         });
     }
 
@@ -256,7 +250,7 @@ class TextInput extends PureComponent<ITextInputProps> {
         const {
             cursorOffset: originalCursorOffset,
             showCursor,
-            completeTriggered,
+            completeTriggered
         } = this.state;
 
         if (focus === false || this.isMounted === false) {
@@ -275,9 +269,9 @@ class TextInput extends PureComponent<ITextInputProps> {
         const KEY_MAP: any = {
             [OTHER_KEY]: (key: string) => {
                 value =
-            value.substr(0, cursorOffset) +
-            s +
-            value.substr(cursorOffset, value.length);
+          value.substr(0, cursorOffset) +
+          s +
+          value.substr(cursorOffset, value.length);
                 cursorOffset += s.length;
 
                 if (s.length > 1) {
@@ -288,9 +282,7 @@ class TextInput extends PureComponent<ITextInputProps> {
                 setRawMode(false);
                 this.submit(originalValue);
             },
-            [TAB]: (key: string) => {
-
-            },
+            [TAB]: (key: string) => {},
             [ARROW_LEFT]: (key: string) => {
                 if (showCursor && !mask) {
                     cursorOffset--;
@@ -303,15 +295,15 @@ class TextInput extends PureComponent<ITextInputProps> {
             },
             [BACKSPACE]: () => {
                 value =
-            value.substr(0, cursorOffset - 1) +
-            value.substr(cursorOffset, value.length);
+          value.substr(0, cursorOffset - 1) +
+          value.substr(cursorOffset, value.length);
                 cursorOffset--;
             },
 
             [DELETE]: () => {
                 value =
-            value.substr(0, cursorOffset - 1) +
-            value.substr(cursorOffset, value.length);
+          value.substr(0, cursorOffset - 1) +
+          value.substr(cursorOffset, value.length);
                 cursorOffset--;
             }
         };
@@ -323,7 +315,7 @@ class TextInput extends PureComponent<ITextInputProps> {
         if (resetComplete) {
             this.setState({
                 ...this.state,
-                completeTriggered: 0,
+                completeTriggered: 0
             });
         }
 
@@ -355,7 +347,7 @@ class TextInput extends PureComponent<ITextInputProps> {
 
         this.setState({
             ...this.state,
-            completes: result,
+            completes: result
         });
     }
 
@@ -365,7 +357,7 @@ class TextInput extends PureComponent<ITextInputProps> {
             if (qsh.completeEngine.trigger(text, pos)) {
                 this.setState({
                     ...this.state,
-                    completeTriggered: pos - 1,
+                    completeTriggered: pos - 1
                 });
 
                 this.getComplete(text, pos - 1, pos - 1);

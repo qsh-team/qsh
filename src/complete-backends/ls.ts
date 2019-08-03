@@ -1,7 +1,4 @@
-import {
-    CompleteBackend,
-    CompleteItem,
-} from '../complete-engine';
+import { CompleteBackend, CompleteItem } from '../complete-engine';
 
 import path from 'path';
 import shell from 'shelljs';
@@ -14,7 +11,11 @@ export default class LsCompleteBackend extends CompleteBackend {
         return false;
     }
 
-    public async complete(line: string, triggerPos: number, pos: number): Promise<CompleteItem[]> {
+    public async complete(
+        line: string,
+        triggerPos: number,
+        pos: number
+    ): Promise<CompleteItem[]> {
         let result: string[] = [];
 
         const wordArray = line.slice(triggerPos + 2, pos + 1).split('/');
@@ -29,7 +30,7 @@ export default class LsCompleteBackend extends CompleteBackend {
         return result.map(item => ({
             value: path.basename(item),
             text: path.basename(item),
-            score: 0,
+            score: 0
         }));
     }
 }

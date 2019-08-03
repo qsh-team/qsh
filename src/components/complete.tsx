@@ -4,7 +4,6 @@ import _ from 'lodash';
 import { TAB, ENTER, AUTO_COMPLETE_MAX_ITEMS, ARROW_DOWN } from './const';
 import { CompleteItem } from '../complete-engine';
 
-
 interface ICompletePublicProps {
     onChange: (str: string) => void;
     onSubmit: (str: string) => void;
@@ -76,9 +75,9 @@ function Complete({
                 return target >= len ? target - len : target;
             });
         }
-        // if (s === TAB) {
-        //     onChange(itemsRef.current[selectIndexRef.current].value);
-        // }
+    // if (s === TAB) {
+    //     onChange(itemsRef.current[selectIndexRef.current].value);
+    // }
     };
 
     useEffect(() => {
@@ -93,7 +92,7 @@ function Complete({
         return function cleanup() {
             stdin.removeListener('data', handleKey);
         };
-    }, []);
+    }, [items]);
 
     return (
         <Box marginLeft={marginLeft} flexDirection="column">

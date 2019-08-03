@@ -7,7 +7,7 @@ import mockIO from 'mock-stdio';
 
 import spies from 'chai-spies';
 import chai from 'chai';
-import { ENTER, TAB } from '../src/components/const';
+import { ENTER, TAB, BACKSPACE } from '../src/components/const';
 
 const timeout = async function(ms: number) {
     return new Promise(resolve => {
@@ -31,7 +31,6 @@ function inputAction(str: string) {
 
 describe('Terminal', () => {
     it('exit<enter> should call QSH.cleanup', async () => {
-
         const qsh = new QSH();
 
         const cleanup = chai.spy.on(qsh, 'cleanup');
@@ -51,10 +50,9 @@ describe('Terminal', () => {
     });
 });
 
-
 describe('AutoComplete', () => {
     it('basic autocomplete', async () => {
-        // @ts-ignore
+    // @ts-ignore
         const stdoutWrite = process.stdout.write;
 
         let buffer = '';
@@ -86,7 +84,85 @@ describe('AutoComplete', () => {
 
         // @ts-ignore
         // eslint-disable-next-line
-        process.stdout.write = stdoutWrite;
-        chai.expect(buffer).contain('Dockerfile');
+    process.stdout.write = stdoutWrite;
+        chai.expect(buffer).contain('ls Dockerfile');
     });
+
+    it('process.stdin.removeListener should be called when autocomplete done', async () => {
+        // user input ls<SPACE>dock<TAB><SPACE>, will complete Dockerfile
+        const qsh = new QSH();
+        qsh.run();
+        await timeout(WAIT_MS);
+
+        inputString('ls ');
+        await timeout(WAIT_MS);
+
+        inputString('docker');
+        await timeout(WAIT_MS);
+
+        inputAction(TAB);
+        await timeout(WAIT_MS);
+
+        // space will let complete done, then completebox disappear
+        // and stdio.removeListener should be called
+
+        const removeListener = chai.spy.on(process.stdin, 'removeListener');
+
+        inputString(' ');
+        await timeout(WAIT_MS);
+
+        chai.expect(removeListener).has.been.called();
+
+        setTimeout(() => {
+            qsh.shutdown();
+        }, 0);
+    });
+
+    //     it('Leave autocomplete can be back', async () => {
+    //         // @ts-ignore
+    //         const stdoutWrite = process.stdout.write;
+
+    //         let buffer = '';
+
+    //         // user input ls<SPACE>dock<TAB>, will complete Dockerfile
+    //         const qsh = new QSH();
+    //         qsh.run();
+    //         await timeout(WAIT_MS);
+
+    //         inputString('ls ');
+    //         await timeout(WAIT_MS);
+
+    //         inputString('docker');
+    //         await timeout(WAIT_MS);
+
+    //         inputAction(TAB);
+    //         await timeout(WAIT_MS);
+
+    //         // ls Dockerfile now
+    //         // then <BACKSPACE><BACKSPACE><TAB><ENTER>
+    //         // output should also has 'Dockerfile'
+
+    //         // starting stdout listen after that
+    //         // because you can not real `delete` string, just output contoll word
+
+    //         // @ts-ignore
+    //         process.stdout.write = (data: string) => {
+    //             buffer += data;
+    //             stdoutWrite.call(process.stdout, data);
+    //         };
+
+    //         inputAction(BACKSPACE);
+    //         inputAction(BACKSPACE);
+    //         inputAction(TAB);
+    //         inputAction(ENTER);
+
+    //         qsh.shutdown();
+
+    //         // @ts-ignore
+    //         // eslint-disable-next-line
+    // process.stdout.write = stdoutWrite;
+
+//         // must be `ls Dockerfile`, because `Dockerfile` could be controll word in complelte menu
+//         chai.expect(buffer).contain('ls Dockerfile');
+//     });
 });
