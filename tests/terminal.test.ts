@@ -37,5 +37,6 @@ describe('Terminal', function() {
         await timeout(WAIT_MS);
 
         chai.expect(process.exit).to.have.been.called.with(0);
+        sandbox.restore();
     });
 });
