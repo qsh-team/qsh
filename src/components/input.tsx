@@ -6,7 +6,7 @@ import { Color, StdinContext, Box } from 'ink';
 import chalk from 'chalk';
 import _ from 'lodash';
 
-import colors from 'ansi-colors';
+import colors, { reset } from 'ansi-colors';
 
 import Complete from './complete';
 
@@ -298,6 +298,7 @@ class TextInput extends PureComponent<ITextInputProps> {
           value.substr(0, cursorOffset - 1) +
           value.substr(cursorOffset, value.length);
                 cursorOffset--;
+                resetComplete = true;
             },
 
             [DELETE]: () => {
@@ -305,6 +306,8 @@ class TextInput extends PureComponent<ITextInputProps> {
           value.substr(0, cursorOffset - 1) +
           value.substr(cursorOffset, value.length);
                 cursorOffset--;
+                resetComplete = true;
+
             }
         };
 
@@ -313,10 +316,7 @@ class TextInput extends PureComponent<ITextInputProps> {
         keyFunc(s);
 
         if (resetComplete) {
-            this.setState({
-                ...this.state,
-                completeTriggered: 0
-            });
+            this.triggerComplete(value, cursorOffset - 1);
         }
 
         if (cursorOffset < 0) {
@@ -352,16 +352,16 @@ class TextInput extends PureComponent<ITextInputProps> {
     }
 
     private async triggerComplete(text: string, pos: number): Promise<void> {
-        if (!this.state.completeTriggered) {
-            const qsh = this.props.qsh;
-            if (qsh.completeEngine.trigger(text, pos)) {
-                this.setState({
-                    ...this.state,
-                    completeTriggered: pos - 1
-                });
+        const qsh = this.props.qsh;
+        if (qsh.completeEngine.trigger(text, pos)) {
+            this.setState({
+                ...this.state,
+                completeTriggered: pos - 1
+            });
 
-                this.getComplete(text, pos - 1, pos - 1);
-            }
+            this.getComplete(text, pos - 1, pos - 1);
+        } else {
+            this.clearComplete();
         }
     }
 }

@@ -50,7 +50,8 @@ export default class QSH {
             //   callback(colors.green(`ҩ${colors.blue('[' + name + ']')}~ `));
             // } catch (e) {}
 
-            const gen = () => colors.green(`ҩ ${ppath(process.cwd())} [${new Date().toLocaleTimeString()}] > `);
+            // const gen = () => colors.green(`ҩ ${ppath(process.cwd())} [${new Date().toLocaleTimeString()}] > `);
+            const gen = () => colors.green(`ҩ ${ppath(process.cwd())} > `);
             callback(gen());
             const timer = setInterval(() => {
                 callback(gen());
