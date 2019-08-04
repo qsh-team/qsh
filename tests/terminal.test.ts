@@ -89,7 +89,7 @@ describe('AutoComplete', () => {
     });
 
     it('process.stdin.removeListener should be called when autocomplete done', async () => {
-        // user input ls<SPACE>dock<TAB><SPACE>, will complete Dockerfile
+    // user input ls<SPACE>dock<TAB><SPACE>, will complete Dockerfile
         const qsh = new QSH();
         qsh.run();
         await timeout(WAIT_MS);
@@ -118,51 +118,56 @@ describe('AutoComplete', () => {
         }, 0);
     });
 
-    //     it('Leave autocomplete can be back', async () => {
-    //         // @ts-ignore
-    //         const stdoutWrite = process.stdout.write;
+    it('Leave autocomplete can be back', async () => {
+    // @ts-ignore
+        const stdoutWrite = process.stdout.write;
 
-    //         let buffer = '';
+        let buffer = '';
 
-    //         // user input ls<SPACE>dock<TAB>, will complete Dockerfile
-    //         const qsh = new QSH();
-    //         qsh.run();
-    //         await timeout(WAIT_MS);
+        // @ts-ignore
+        process.stdout.write = (data: string) => {
+            buffer += data;
+            stdoutWrite.call(process.stdout, data);
+        };
 
-    //         inputString('ls ');
-    //         await timeout(WAIT_MS);
+        // user input ls<SPACE>dock<TAB>, will complete Dockerfile
+        const qsh = new QSH();
+        qsh.run();
+        await timeout(WAIT_MS);
 
-    //         inputString('docker');
-    //         await timeout(WAIT_MS);
+        inputString('ls ');
+        await timeout(WAIT_MS);
 
-    //         inputAction(TAB);
-    //         await timeout(WAIT_MS);
+        inputString('docker');
+        await timeout(WAIT_MS);
 
-    //         // ls Dockerfile now
-    //         // then <BACKSPACE><BACKSPACE><TAB><ENTER>
-    //         // output should also has 'Dockerfile'
+        inputAction(TAB);
+        await timeout(WAIT_MS);
 
-    //         // starting stdout listen after that
-    //         // because you can not real `delete` string, just output contoll word
+        // ls Dockerfile now
+        // then <BACKSPACE><BACKSPACE><TAB><ENTER>
+        // output should also has 'Dockerfile'
 
-    //         // @ts-ignore
-    //         process.stdout.write = (data: string) => {
-    //             buffer += data;
-    //             stdoutWrite.call(process.stdout, data);
-    //         };
+        // starting stdout listen after that
+        // because you can not real `delete` string, just output contoll word
 
-    //         inputAction(BACKSPACE);
-    //         inputAction(BACKSPACE);
-    //         inputAction(TAB);
-    //         inputAction(ENTER);
+        inputAction(BACKSPACE);
+        inputAction(BACKSPACE);
+        await timeout(WAIT_MS);
 
-    //         qsh.shutdown();
+        inputAction(TAB);
 
-    //         // @ts-ignore
-    //         // eslint-disable-next-line
-    // process.stdout.write = stdoutWrite;
+        await timeout(WAIT_MS);
+        inputString(' ');
+        inputString('test');
+        qsh.shutdown();
 
-//         // must be `ls Dockerfile`, because `Dockerfile` could be controll word in complelte menu
-//         chai.expect(buffer).contain('ls Dockerfile');
-//     });
+        // @ts-ignore
+        // eslint-disable-next-line
+    process.stdout.write = stdoutWrite;
+
+        // must be `Dockerfile test`, because `Dockerfile` could be controll word in complelte menu
+        // and `ls Dockerfile` not works here, because `ls` is already on screen
+        chai.expect(buffer).contain('Dockerfile test');
+    });
 });

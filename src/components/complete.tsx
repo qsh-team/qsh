@@ -91,6 +91,7 @@ function Complete({
         stdin.on('data', handleKey);
         return function cleanup() {
             stdin.removeListener('data', handleKey);
+            setSelectIndex(-1);
         };
     }, [items]);
 
