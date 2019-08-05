@@ -7,6 +7,7 @@ import spies from 'chai-spies';
 import colors from 'ansi-colors';
 import chai from 'chai';
 import shell from 'shelljs';
+import fs from 'fs';
 import {
     ENTER,
     TAB,
@@ -256,5 +257,42 @@ describe('QSH', () => {
       qsh._for_test_only_do_not_ues.inputComponent.state.completeTriggered;
 
         chai.expect(completeTriggered).to.equal(0);
+    });
+
+    it('History hinting after complete must be right', async () => {
+    // make a history
+        await inputString('ls DockerTestFile');
+        await inputAction(ENTER);
+
+        // input another
+        shell.rm('Dockerfile');
+        await inputString('ls d');
+        await inputAction(TAB);
+
+        const hinting =
+      qsh._for_test_only_do_not_ues.inputComponent &&
+      qsh._for_test_only_do_not_ues.inputComponent.state.hinting;
+
+        const value =
+      qsh._for_test_only_do_not_ues.inputComponent &&
+      qsh._for_test_only_do_not_ues.inputComponent.props.value;
+
+        await timeout(WAIT_MS);
+        if (hinting) {
+            chai
+                .expect(qsh.history.indexOf((value || '') + hinting))
+                .to.not.equal(-1);
+        }
+    });
+
+    it('Redirect output to file', async () => {
+        await inputString('echo test > test.txt');
+        await inputAction(ENTER);
+
+        await timeout(WAIT_MS);
+
+        const outputFile = path.resolve('./test.txt');
+        chai.expect(fs.existsSync(outputFile)).to.equal(true);
+        chai.expect(fs.readFileSync(outputFile, 'utf-8')).to.equal('test\n');
     });
 });
