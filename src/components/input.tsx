@@ -58,7 +58,9 @@ class TextInput extends PureComponent<ITextInputProps> {
         cursorWidth: 0,
         completes: [] as CompleteItem[],
         completeTriggered: 0,
-        showCursor: true
+        showCursor: true,
+        hinting: '',
+        historyIndex: 0,
     };
 
     private _isMounted: boolean = true;
@@ -104,7 +106,8 @@ class TextInput extends PureComponent<ITextInputProps> {
             cursorWidth,
             showCursor,
             completes,
-            completeTriggered
+            completeTriggered,
+            hinting,
         } = this.state;
         const hasValue = value.length > 0;
         let renderedValue = value;
@@ -127,8 +130,17 @@ class TextInput extends PureComponent<ITextInputProps> {
             }
 
             if (value.length > 0 && cursorOffset === value.length) {
-                renderedValue += chalk.inverse(' ');
+                if (hinting) {
+                    renderedValue += chalk.inverse(chalk.gray(hinting[0]));
+                    renderedValue += chalk.gray(hinting.slice(1));
+                } else {
+                    renderedValue += chalk.inverse(' ');
+                }
+            } else if (hinting) {
+                renderedValue += chalk.gray(hinting);
             }
+
+
         }
 
         if (mask) {
@@ -163,6 +175,7 @@ class TextInput extends PureComponent<ITextInputProps> {
                                 ? renderedValue
                                 : placeholder
                             : renderedValue}
+                        {/* {hinting ? <Color gray>{hinting}</Color> : ''} */}
                     </Box>
                 </Box>
                 <Box>{renderCompleteWithCursor(marginLeft)}</Box>
@@ -188,6 +201,18 @@ class TextInput extends PureComponent<ITextInputProps> {
 
     private handleCompleteChange(val: string) {
         this.completeValue(val);
+    }
+
+    private replaceValue(result: string) {
+        const { onChange } = this.props;
+        onChange(result);
+        this.clearComplete();
+
+        this.setState({
+            ...this.state,
+            cursorOffset: result.length,
+            hinting: '',
+        });
     }
 
     private completeValue(result: string) {
@@ -238,6 +263,30 @@ class TextInput extends PureComponent<ITextInputProps> {
         );
     }
 
+    private triggerHint() {
+        const {
+            value,
+            qsh,
+        } = this.props;
+
+        if (!value) {
+            return;
+        }
+
+        // hint for history
+        const item = _.find(qsh.history, item => item.startsWith(value));
+
+        if (item) {
+            this.setState({
+                hinting: item.slice(value.length + 1),
+            });
+        } else {
+            this.setState({
+                hinting: '',
+            });
+        }
+    }
+
     private handleInput(data: Buffer): void {
         const OTHER_KEY = 'other_key';
         const {
@@ -251,7 +300,8 @@ class TextInput extends PureComponent<ITextInputProps> {
         const {
             cursorOffset: originalCursorOffset,
             showCursor,
-            completeTriggered
+            completeTriggered,
+            hinting,
         } = this.state;
 
         if (focus === false || this.isMounted === false) {
@@ -266,6 +316,8 @@ class TextInput extends PureComponent<ITextInputProps> {
 
         // some key will reset complete trigger, then give true to this var
         let resetComplete = false;
+
+        let skipHint = false;
 
         const KEY_MAP: any = {
             [OTHER_KEY]: (key: string) => {
@@ -283,7 +335,9 @@ class TextInput extends PureComponent<ITextInputProps> {
                 setRawMode(false);
                 this.submit(originalValue);
             },
-            [TAB]: (key: string) => {},
+            [TAB]: (key: string) => {
+                skipHint = true;
+            },
             [ARROW_LEFT]: (key: string) => {
                 if (showCursor && !mask) {
                     cursorOffset--;
@@ -299,7 +353,61 @@ class TextInput extends PureComponent<ITextInputProps> {
           value.substr(0, cursorOffset - 1) +
           value.substr(cursorOffset, value.length);
                 cursorOffset--;
+            },
+
+            [ARROW_UP]: () => {
+                const {
+                    historyIndex,
+                } = this.state;
+
+                const {
+                    qsh,
+                } = this.props;
+
+                if (historyIndex >= qsh.history.length - 1) {
+                    return;
+                }
+
                 resetComplete = true;
+
+                this.setState({
+                    ...this.state,
+                    historyIndex: historyIndex + 1,
+                });
+
+                const item = qsh.history[historyIndex];
+
+                if (item) {
+                    this.replaceValue(item);
+                }
+
+            },
+
+            [ARROW_DOWN]: () => {
+                const {
+                    historyIndex,
+                } = this.state;
+
+                const {
+                    qsh,
+                } = this.props;
+
+                if (historyIndex <= 0) {
+                    return;
+                }
+
+                resetComplete = true;
+
+                this.setState({
+                    ...this.state,
+                    historyIndex: historyIndex - 1,
+                });
+
+                const item = qsh.history[historyIndex];
+
+                if (item) {
+                    this.replaceValue(item);
+                }
             },
 
             [DELETE]: () => {
@@ -307,7 +415,10 @@ class TextInput extends PureComponent<ITextInputProps> {
           value.substr(0, cursorOffset - 1) +
           value.substr(cursorOffset, value.length);
                 cursorOffset--;
-                resetComplete = true;
+
+                if (cursorOffset - 1 <= completeTriggered) {
+                    resetComplete = true;
+                }
             },
 
             [CTRL_C]: () => {
@@ -328,9 +439,20 @@ class TextInput extends PureComponent<ITextInputProps> {
         }
         if (cursorOffset > value.length) {
             cursorOffset = value.length;
-        }
 
+            resetComplete = true;
+
+            if (hinting) {
+                this.replaceValue(value + hinting);
+                return;
+            }
+
+        }
         this.setState({ cursorOffset, cursorWidth });
+
+        if (!skipHint) {
+            this.triggerHint();
+        }
 
         if (value !== originalValue) {
             onChange(value);

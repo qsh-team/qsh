@@ -88,6 +88,25 @@ describe('QSH', () => {
         chai.expect(buffer).contain('ls Dockerfile');
     });
 
+    it('path autocomplete can resolve ./', async () => {
+        // user input ls<SPACE>dock<TAB><ENTER>, will complete Dockerfile
+        // so output will contains 'Dockerfile'
+
+        inputString('ls ');
+        await timeout(WAIT_MS);
+
+        inputString('./docker');
+        await timeout(WAIT_MS);
+
+        inputAction(TAB);
+        await timeout(WAIT_MS);
+
+        inputAction(ENTER);
+        await timeout(WAIT_MS);
+
+        chai.expect(buffer).contain('ls ./Dockerfile');
+    });
+
     it('process.stdin.removeListener should be called when autocomplete done', async () => {
     // user input ls<SPACE>dock<TAB><SPACE>, will complete Dockerfile
         inputString('ls ');
@@ -110,7 +129,7 @@ describe('QSH', () => {
         chai.expect(removeListener).has.been.called();
     });
 
-    it('Delete word can cancel complete', async () => {
+    it('Delete back can cancel complete', async () => {
     // user input ls<SPACE>, will display compelte list
         inputString('ls ');
         await timeout(WAIT_MS);
@@ -131,9 +150,31 @@ describe('QSH', () => {
         chai.expect(colors.unstyle(buffer)).not.contain('lsDockerfile');
     });
 
+    it('But delete should not just break complete', async () => {
+        // user input ls<SPACE>docker, will display compelte list
+        inputString('ls docker');
+        await timeout(WAIT_MS);
+
+        // containes Dockerfile for now
+        chai.expect(buffer).contain('Dockerfile');
+
+        // <BACKSPACE> now, then complete should be cancel
+        buffer = '';
+
+        inputAction(BACKSPACE);
+        await timeout(WAIT_MS);
+
+        inputString('r');
+        await timeout(WAIT_MS);
+        inputAction(TAB);
+        await timeout(WAIT_MS);
+
+
+        chai.expect(colors.unstyle(buffer)).contain('ls Dockerfile');
+    });
 
     it('Ctrl C will restart line', async () => {
-        // user input ls<SPACE>, will display compelte list
+    // user input ls<SPACE>, will display compelte list
         inputString('ls ');
         await timeout(WAIT_MS);
 
