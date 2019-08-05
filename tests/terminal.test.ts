@@ -187,17 +187,14 @@ describe('QSH', () => {
         chai.expect(startLine).has.been.called();
     });
 
-    it('Up get history', async () => {
+    it('UP get history', async () => {
         await inputString('ls');
         await inputAction(ENTER);
 
         // <ARROW_UP> now, get history
 
         if (qsh._for_test_only_do_not_ues.inputComponent) {
-            const replace = chai.spy.on(
-                qsh._for_test_only_do_not_ues.inputComponent,
-                'replaceValue'
-            );
+            const replace = chai.spy.on(TextInput.prototype, 'replaceValue');
             // <BACKSPACE> now
 
             await inputAction(ARROW_UP);
@@ -236,34 +233,27 @@ describe('QSH', () => {
         }
     });
 
-
     it('Ctrl-a should move cursor to line begin and reset complete', async () => {
         await inputString('ls DockerTestFile');
         await inputAction(CTRL_A);
 
         const cursor =
-          qsh._for_test_only_do_not_ues.inputComponent &&
-          qsh._for_test_only_do_not_ues.inputComponent.state.cursorOffset;
+      qsh._for_test_only_do_not_ues.inputComponent &&
+      qsh._for_test_only_do_not_ues.inputComponent.state.cursorOffset;
 
         await timeout(WAIT_MS);
-        chai
-            .expect(cursor)
-            .to.equal(0);
+        chai.expect(cursor).to.equal(0);
 
         const completes =
-            qsh._for_test_only_do_not_ues.inputComponent &&
-            qsh._for_test_only_do_not_ues.inputComponent.state.completes;
+      qsh._for_test_only_do_not_ues.inputComponent &&
+      qsh._for_test_only_do_not_ues.inputComponent.state.completes;
 
-        chai
-            .expect(completes && completes.length)
-            .to.equal(0);
+        chai.expect(completes && completes.length).to.equal(0);
 
         const completeTriggered =
-            qsh._for_test_only_do_not_ues.inputComponent &&
-            qsh._for_test_only_do_not_ues.inputComponent.state.completeTriggered;
+      qsh._for_test_only_do_not_ues.inputComponent &&
+      qsh._for_test_only_do_not_ues.inputComponent.state.completeTriggered;
 
-        chai
-            .expect(completeTriggered)
-            .to.equal(0);
+        chai.expect(completeTriggered).to.equal(0);
     });
 });
