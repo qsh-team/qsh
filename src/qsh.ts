@@ -105,7 +105,7 @@ export default class QSH {
 
         this.event.emit('init');
 
-        initCompleteBackends(this.completeEngine);
+        initCompleteBackends(this, this.completeEngine);
         this.startLoop();
     }
 

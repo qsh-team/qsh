@@ -5,7 +5,7 @@ import shell from 'shelljs';
 
 export default class LsCompleteBackend extends CompleteBackend {
     public trigger(line: string, triggerPos: number): boolean {
-        if (line[triggerPos] === ' ' && line.trim().endsWith('ls')) {
+        if (line[triggerPos] === ' ') {
             return true;
         }
         return false;

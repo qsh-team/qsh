@@ -38,7 +38,8 @@ import {
     ARROW_RIGHT,
     BACKSPACE,
     DELETE,
-    AUTO_COMPLETE_WIDTH
+    AUTO_COMPLETE_WIDTH,
+    CTRL_C
 } from './const';
 import { CompleteItem } from '../complete-engine';
 
@@ -307,7 +308,10 @@ class TextInput extends PureComponent<ITextInputProps> {
           value.substr(cursorOffset, value.length);
                 cursorOffset--;
                 resetComplete = true;
+            },
 
+            [CTRL_C]: () => {
+                this.submit(null);
             }
         };
 

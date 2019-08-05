@@ -6,7 +6,7 @@ import mocha from 'mocha';
 import spies from 'chai-spies';
 import colors from 'ansi-colors';
 import chai from 'chai';
-import { ENTER, TAB, BACKSPACE } from '../src/components/const';
+import { ENTER, TAB, BACKSPACE, CTRL_C } from '../src/components/const';
 
 const timeout = async function(ms: number) {
     return new Promise(resolve => {
@@ -35,7 +35,7 @@ describe('QSH', () => {
     let qsh: QSH;
 
     mocha.beforeEach(async () => {
-        // @ts-ignore
+    // @ts-ignore
         process.stdout.write = (data: string) => {
             buffer += data;
             stdoutWrite.call(process.stdout, data);
@@ -45,7 +45,6 @@ describe('QSH', () => {
         qsh = new QSH();
         qsh.run();
         await timeout(WAIT_MS);
-
     });
 
     mocha.afterEach(() => {
@@ -71,10 +70,8 @@ describe('QSH', () => {
     });
 
     it('basic autocomplete', async () => {
-
-        // user input ls<SPACE>dock<TAB><ENTER>, will complete Dockerfile
-        // so output will contains 'Dockerfile'
-
+    // user input ls<SPACE>dock<TAB><ENTER>, will complete Dockerfile
+    // so output will contains 'Dockerfile'
 
         inputString('ls ');
         await timeout(WAIT_MS);
@@ -89,7 +86,6 @@ describe('QSH', () => {
         await timeout(WAIT_MS);
 
         chai.expect(buffer).contain('ls Dockerfile');
-
     });
 
     it('process.stdin.removeListener should be called when autocomplete done', async () => {
@@ -112,13 +108,10 @@ describe('QSH', () => {
         await timeout(WAIT_MS);
 
         chai.expect(removeListener).has.been.called();
-
     });
 
-
     it('Delete word can cancel complete', async () => {
-
-        // user input ls<SPACE>, will display compelte list
+    // user input ls<SPACE>, will display compelte list
         inputString('ls ');
         await timeout(WAIT_MS);
 
@@ -136,5 +129,20 @@ describe('QSH', () => {
         inputAction(TAB);
 
         chai.expect(colors.unstyle(buffer)).not.contain('lsDockerfile');
+    });
+
+
+    it('Ctrl C will restart line', async () => {
+        // user input ls<SPACE>, will display compelte list
+        inputString('ls ');
+        await timeout(WAIT_MS);
+
+        // qsh._term._app is private
+        // @ts-ignore
+        const startLine = chai.spy.on(qsh._term._app, 'unmount');
+        inputAction(CTRL_C);
+        await timeout(WAIT_MS);
+
+        chai.expect(startLine).has.been.called();
     });
 });

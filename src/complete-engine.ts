@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import QSH from './qsh';
 
 export interface CompleteItem {
     text: string;
@@ -6,13 +7,23 @@ export interface CompleteItem {
     score?: number;
 }
 
+export interface CompleteBackendOption {
+    qsh: QSH;
+}
 export class CompleteBackend {
+    protected _qsh: QSH;
+
+    public constructor({
+        qsh,
+    }: CompleteBackendOption) {
+        this._qsh = qsh;
+    }
     public trigger(line: string, triggerPos: number): boolean {
-        return false;
+        throw new Error('trigger should be implemenet');
     }
 
     public async complete(line: string, triggerPos: number, pos: number): Promise<CompleteItem[]> {
-        return [];
+        throw new Error('complete should be implemenet');
     }
 }
 
