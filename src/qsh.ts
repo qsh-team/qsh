@@ -22,6 +22,7 @@ import branchName from 'branch-name';
 import execCommand from './command';
 import CompleteEngine from './complete-engine';
 import { initCompleteBackends } from './complete-backends';
+import { TextInput } from './components/input';
 
 export interface QSHEvent {
     init: () => void;
@@ -34,12 +35,21 @@ export interface QSHEvent {
 interface CommandMap {
     [name: string]: (name: string, args: string[]) => Promise<void>;
 }
+
+interface TestOnlyObject {
+    inputComponent: TextInput| null;
+}
+
 export default class QSH {
     public event: TypedEmitter<QSHEvent> = new EventEmitter() as TypedEmitter<
     QSHEvent
     >;
     public history: string[] = [];
     public completeEngine: CompleteEngine = new CompleteEngine();
+
+    public _for_test_only_do_not_ues: TestOnlyObject = {
+        inputComponent: null,
+    };
 
     public commands: CommandMap = {};
     public options = {
@@ -66,6 +76,7 @@ export default class QSH {
 
     private _keepRunning: boolean = true;
     private _term?: Term;
+
 
     public run() {
         this.init();

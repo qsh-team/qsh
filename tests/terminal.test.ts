@@ -6,9 +6,8 @@ import mocha from 'mocha';
 import spies from 'chai-spies';
 import colors from 'ansi-colors';
 import chai from 'chai';
-import { ENTER, TAB, BACKSPACE, CTRL_C } from '../src/components/const';
+import { ENTER, TAB, BACKSPACE, CTRL_C, ARROW_UP } from '../src/components/const';
 import { TextInput } from '../src/components/input';
-
 
 const timeout = async function(ms: number) {
     return new Promise(resolve => {
@@ -16,14 +15,13 @@ const timeout = async function(ms: number) {
     });
 };
 
-const WAIT_MS = 30;
+const WAIT_MS = 10;
 
 chai.use(spies);
 
 async function inputString(str: string) {
     for (let ch of str) {
         process.stdin.emit('data', Buffer.from(ch));
-        await timeout(WAIT_MS);
     }
     await timeout(WAIT_MS);
 }
@@ -141,7 +139,7 @@ describe('QSH', () => {
 
         // @ts-ignore
         // eslint-disable-next-line
-        const complete = chai.spy.on(TextInput.prototype, 'completeValue');
+    const complete = chai.spy.on(TextInput.prototype, "completeValue");
         // <BACKSPACE> now
 
         await inputAction(BACKSPACE);
@@ -163,5 +161,22 @@ describe('QSH', () => {
         await inputAction(CTRL_C);
 
         chai.expect(startLine).has.been.called();
+    });
+
+    it('Up get history', async () => {
+        await inputString('ls');
+        await inputAction(ENTER);
+
+        // <ARROW_UP> now, get history
+
+        // @ts-ignore
+        // eslint-disable-next-line
+    const replace = chai.spy.on(TextInput.prototype, "replaceValue");
+        // <BACKSPACE> now
+
+        await inputAction(ARROW_UP);
+
+        chai.expect(replace).has.been.called.with('ls');
+        chai.expect(qsh._for_test_only_do_not_ues.inputComponent && qsh._for_test_only_do_not_ues.inputComponent.state.cursorOffset).to.equals('ls'.length);
     });
 });

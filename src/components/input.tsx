@@ -90,6 +90,8 @@ export class TextInput extends PureComponent<ITextInputProps> {
                 originSetState.apply(this, args);
             }
         };
+
+        this.props.qsh._for_test_only_do_not_ues.inputComponent = this;
     }
 
     public render() {
@@ -314,6 +316,8 @@ export class TextInput extends PureComponent<ITextInputProps> {
 
         let skipHint = false;
 
+        let justReturn = false;
+
         const KEY_MAP: any = {
             [OTHER_KEY]: (key: string) => {
                 value =
@@ -371,6 +375,8 @@ export class TextInput extends PureComponent<ITextInputProps> {
                 if (item) {
                     this.replaceValue(item);
                 }
+
+                justReturn = true;
             },
 
             [ARROW_DOWN]: () => {
@@ -415,6 +421,10 @@ export class TextInput extends PureComponent<ITextInputProps> {
         const keyFunc = KEY_MAP[s] || KEY_MAP[OTHER_KEY];
 
         keyFunc(s);
+
+        if (justReturn) {
+            return;
+        }
 
         if (resetComplete) {
             this.triggerComplete(value, cursorOffset - 1);
