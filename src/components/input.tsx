@@ -43,7 +43,7 @@ import {
 } from './const';
 import { CompleteItem } from '../complete-engine';
 
-class TextInput extends PureComponent<ITextInputProps> {
+export class TextInput extends PureComponent<ITextInputProps> {
     private static defaultProps = {
         placeholder: '',
         showCursor: true,

@@ -7,6 +7,8 @@ import spies from 'chai-spies';
 import colors from 'ansi-colors';
 import chai from 'chai';
 import { ENTER, TAB, BACKSPACE, CTRL_C } from '../src/components/const';
+import { TextInput } from '../src/components/input';
+
 
 const timeout = async function(ms: number) {
     return new Promise(resolve => {
@@ -137,6 +139,9 @@ describe('QSH', () => {
     // user input ls<SPACE>docker, will display compelte list
         await inputString('ls docker');
 
+        // @ts-ignore
+        // eslint-disable-next-line
+        const complete = chai.spy.on(TextInput.prototype, 'completeValue');
         // <BACKSPACE> now
 
         await inputAction(BACKSPACE);
@@ -145,7 +150,7 @@ describe('QSH', () => {
         await inputAction(TAB);
         await inputAction(' ');
 
-        chai.expect(buffer).contain('ls Dockerfile');
+        chai.expect(complete).has.been.called.with('Dockerfile');
     });
 
     it('Ctrl C will restart line', async () => {
