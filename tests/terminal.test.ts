@@ -6,7 +6,15 @@ import mocha from 'mocha';
 import spies from 'chai-spies';
 import colors from 'ansi-colors';
 import chai from 'chai';
-import { ENTER, TAB, BACKSPACE, CTRL_C, ARROW_UP } from '../src/components/const';
+import shell from 'shelljs';
+import {
+    ENTER,
+    TAB,
+    BACKSPACE,
+    CTRL_C,
+    ARROW_UP
+} from '../src/components/const';
+import path from 'path';
 import { TextInput } from '../src/components/input';
 
 const timeout = async function(ms: number) {
@@ -37,8 +45,21 @@ describe('QSH', () => {
     const stdoutWrite = process.stdout.write;
     let qsh: QSH;
 
+    const cwd = process.cwd();
+    const home = process.env.HOME || '/tmp';
+
     mocha.beforeEach(async () => {
-    // @ts-ignore
+
+        // papare a test env
+        shell.rm('-rf', './test_env');
+        shell.mkdir('-p', './test_env');
+        shell.touch('./test_env/Dockerfile');
+        shell.touch('./test_env/DocTestfile');
+
+        process.env.HOME = path.join('./test_env');
+        shell.cd('./test_env');
+
+        // @ts-ignore
         process.stdout.write = (data: string) => {
             buffer += data;
             stdoutWrite.call(process.stdout, data);
@@ -56,6 +77,9 @@ describe('QSH', () => {
         // @ts-ignore
         // eslint-disable-next-line
     process.stdout.write = stdoutWrite;
+
+        process.env.HOME = home;
+        shell.cd(cwd);
     });
 
     it('exit<enter> should call QSH.cleanup', async () => {
@@ -177,6 +201,32 @@ describe('QSH', () => {
         await inputAction(ARROW_UP);
 
         chai.expect(replace).has.been.called.with('ls');
-        chai.expect(qsh._for_test_only_do_not_ues.inputComponent && qsh._for_test_only_do_not_ues.inputComponent.state.cursorOffset).to.equals('ls'.length);
+        chai
+            .expect(qsh._for_test_only_do_not_ues.inputComponent &&
+          qsh._for_test_only_do_not_ues.inputComponent.state.cursorOffset)
+            .to.equals('ls'.length);
+    });
+
+
+    it('History hinting after complete must be right', async () => {
+        // make a history
+        await inputString('ls DockerTestFile');
+        await inputAction(ENTER);
+
+        // input another
+        shell.rm('Dockerfile');
+        await inputString('ls d');
+        await inputAction(TAB);
+
+        const hinting = qsh._for_test_only_do_not_ues.inputComponent &&
+        qsh._for_test_only_do_not_ues.inputComponent.state.hinting;
+
+        const value = qsh._for_test_only_do_not_ues.inputComponent &&
+        qsh._for_test_only_do_not_ues.inputComponent.props.value;
+
+        await timeout(WAIT_MS);
+        if (hinting) {
+            chai.expect(qsh.history.indexOf((value || '') + hinting)).to.not.equal(-1);
+        }
     });
 });

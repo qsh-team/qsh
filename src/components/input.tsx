@@ -335,7 +335,7 @@ export class TextInput extends PureComponent<ITextInputProps> {
                 this.submit(originalValue);
             },
             [TAB]: (key: string) => {
-                skipHint = true;
+                // skipHint = true;
             },
             [ARROW_LEFT]: (key: string) => {
                 if (showCursor && !mask) {
