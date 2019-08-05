@@ -161,7 +161,7 @@ describe('QSH', () => {
         inputAction(TAB);
         await timeout(WAIT_MS);
 
-        chai.expect(colors.unstyle(buffer)).contain('ls Dockerfile');
+        chai.expect(buffer).contain('ls Dockerfile');
     });
 
     it('Ctrl C will restart line', async () => {
