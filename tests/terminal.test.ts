@@ -89,8 +89,8 @@ describe('QSH', () => {
     });
 
     it('path autocomplete can resolve ./', async () => {
-        // user input ls<SPACE>dock<TAB><ENTER>, will complete Dockerfile
-        // so output will contains 'Dockerfile'
+    // user input ls<SPACE>dock<TAB><ENTER>, will complete Dockerfile
+    // so output will contains 'Dockerfile'
 
         inputString('ls ');
         await timeout(WAIT_MS);
@@ -134,9 +134,6 @@ describe('QSH', () => {
         inputString('ls ');
         await timeout(WAIT_MS);
 
-        // containes Dockerfile for now
-        chai.expect(buffer).contain('Dockerfile');
-
         // <BACKSPACE> now, then complete should be cancel
         buffer = '';
 
@@ -151,12 +148,9 @@ describe('QSH', () => {
     });
 
     it('But delete should not just break complete', async () => {
-        // user input ls<SPACE>docker, will display compelte list
+    // user input ls<SPACE>docker, will display compelte list
         inputString('ls docker');
         await timeout(WAIT_MS);
-
-        // containes Dockerfile for now
-        chai.expect(buffer).contain('Dockerfile');
 
         // <BACKSPACE> now, then complete should be cancel
         buffer = '';
@@ -168,7 +162,6 @@ describe('QSH', () => {
         await timeout(WAIT_MS);
         inputAction(TAB);
         await timeout(WAIT_MS);
-
 
         chai.expect(colors.unstyle(buffer)).contain('ls Dockerfile');
     });

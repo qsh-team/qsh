@@ -60,7 +60,7 @@ class TextInput extends PureComponent<ITextInputProps> {
         completeTriggered: 0,
         showCursor: true,
         hinting: '',
-        historyIndex: 0,
+        historyIndex: 0
     };
 
     private _isMounted: boolean = true;
@@ -107,7 +107,7 @@ class TextInput extends PureComponent<ITextInputProps> {
             showCursor,
             completes,
             completeTriggered,
-            hinting,
+            hinting
         } = this.state;
         const hasValue = value.length > 0;
         let renderedValue = value;
@@ -139,8 +139,6 @@ class TextInput extends PureComponent<ITextInputProps> {
             } else if (hinting) {
                 renderedValue += chalk.gray(hinting);
             }
-
-
         }
 
         if (mask) {
@@ -211,7 +209,7 @@ class TextInput extends PureComponent<ITextInputProps> {
         this.setState({
             ...this.state,
             cursorOffset: result.length,
-            hinting: '',
+            hinting: ''
         });
     }
 
@@ -264,10 +262,7 @@ class TextInput extends PureComponent<ITextInputProps> {
     }
 
     private triggerHint() {
-        const {
-            value,
-            qsh,
-        } = this.props;
+        const { value, qsh } = this.props;
 
         if (!value) {
             return;
@@ -278,11 +273,11 @@ class TextInput extends PureComponent<ITextInputProps> {
 
         if (item) {
             this.setState({
-                hinting: item.slice(value.length + 1),
+                hinting: item.slice(value.length + 1)
             });
         } else {
             this.setState({
-                hinting: '',
+                hinting: ''
             });
         }
     }
@@ -301,7 +296,7 @@ class TextInput extends PureComponent<ITextInputProps> {
             cursorOffset: originalCursorOffset,
             showCursor,
             completeTriggered,
-            hinting,
+            hinting
         } = this.state;
 
         if (focus === false || this.isMounted === false) {
@@ -356,13 +351,9 @@ class TextInput extends PureComponent<ITextInputProps> {
             },
 
             [ARROW_UP]: () => {
-                const {
-                    historyIndex,
-                } = this.state;
+                const { historyIndex } = this.state;
 
-                const {
-                    qsh,
-                } = this.props;
+                const { qsh } = this.props;
 
                 if (historyIndex >= qsh.history.length - 1) {
                     return;
@@ -372,7 +363,7 @@ class TextInput extends PureComponent<ITextInputProps> {
 
                 this.setState({
                     ...this.state,
-                    historyIndex: historyIndex + 1,
+                    historyIndex: historyIndex + 1
                 });
 
                 const item = qsh.history[historyIndex];
@@ -380,17 +371,12 @@ class TextInput extends PureComponent<ITextInputProps> {
                 if (item) {
                     this.replaceValue(item);
                 }
-
             },
 
             [ARROW_DOWN]: () => {
-                const {
-                    historyIndex,
-                } = this.state;
+                const { historyIndex } = this.state;
 
-                const {
-                    qsh,
-                } = this.props;
+                const { qsh } = this.props;
 
                 if (historyIndex <= 0) {
                     return;
@@ -400,7 +386,7 @@ class TextInput extends PureComponent<ITextInputProps> {
 
                 this.setState({
                     ...this.state,
-                    historyIndex: historyIndex - 1,
+                    historyIndex: historyIndex - 1
                 });
 
                 const item = qsh.history[historyIndex];
@@ -446,7 +432,6 @@ class TextInput extends PureComponent<ITextInputProps> {
                 this.replaceValue(value + hinting);
                 return;
             }
-
         }
         this.setState({ cursorOffset, cursorWidth });
 
