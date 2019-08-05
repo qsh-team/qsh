@@ -143,7 +143,7 @@ describe('QSH', () => {
         await timeout(WAIT_MS);
         inputAction(TAB);
 
-        chai.expect(colors.unstyle(buffer)).not.contain('lsDockerfile');
+        chai.expect(buffer).not.contain('lsDockerfile');
     });
 
     it('But delete should not just break complete', async () => {
