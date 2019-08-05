@@ -18,14 +18,17 @@ const WAIT_MS = 30;
 
 chai.use(spies);
 
-function inputString(str: string) {
+async function inputString(str: string) {
     for (let ch of str) {
         process.stdin.emit('data', Buffer.from(ch));
+        await timeout(WAIT_MS);
     }
+    await timeout(WAIT_MS);
 }
 
-function inputAction(str: string) {
+async function inputAction(str: string) {
     process.stdin.emit('data', Buffer.from(str));
+    await timeout(WAIT_MS);
 }
 
 describe('QSH', () => {
@@ -58,13 +61,12 @@ describe('QSH', () => {
     it('exit<enter> should call QSH.cleanup', async () => {
         const cleanup = chai.spy.on(qsh, 'cleanup');
 
-        inputString('exit');
-        inputAction(ENTER);
+        await inputString('exit');
+        await inputAction(ENTER);
 
         // const result = mockIO.end();
 
         // console.log(result);
-        await timeout(WAIT_MS);
 
         chai.expect(cleanup).to.have.been.called();
     });
@@ -73,17 +75,13 @@ describe('QSH', () => {
     // user input ls<SPACE>dock<TAB><ENTER>, will complete Dockerfile
     // so output will contains 'Dockerfile'
 
-        inputString('ls ');
-        await timeout(WAIT_MS);
+        await inputString('ls ');
 
-        inputString('docker');
-        await timeout(WAIT_MS);
+        await inputString('docker');
 
-        inputAction(TAB);
-        await timeout(WAIT_MS);
+        await inputAction(TAB);
 
-        inputAction(ENTER);
-        await timeout(WAIT_MS);
+        await inputAction(ENTER);
 
         chai.expect(buffer).contain('ls Dockerfile');
     });
@@ -92,89 +90,72 @@ describe('QSH', () => {
     // user input ls<SPACE>dock<TAB><ENTER>, will complete Dockerfile
     // so output will contains 'Dockerfile'
 
-        inputString('ls ');
-        await timeout(WAIT_MS);
+        await inputString('ls ');
 
-        inputString('./docker');
-        await timeout(WAIT_MS);
+        await inputString('./docker');
 
-        inputAction(TAB);
-        await timeout(WAIT_MS);
+        await inputAction(TAB);
 
-        inputAction(ENTER);
-        await timeout(WAIT_MS);
+        await inputAction(ENTER);
 
         chai.expect(buffer).contain('ls ./Dockerfile');
     });
 
     it('process.stdin.removeListener should be called when autocomplete done', async () => {
     // user input ls<SPACE>dock<TAB><SPACE>, will complete Dockerfile
-        inputString('ls ');
-        await timeout(WAIT_MS);
+        await inputString('ls ');
 
-        inputString('docker');
-        await timeout(WAIT_MS);
+        await inputString('docker');
 
-        inputAction(TAB);
-        await timeout(WAIT_MS);
+        await inputAction(TAB);
 
         // space will let complete done, then completebox disappear
         // and stdio.removeListener should be called
 
         const removeListener = chai.spy.on(process.stdin, 'removeListener');
 
-        inputString(' ');
-        await timeout(WAIT_MS);
+        await inputString(' ');
 
         chai.expect(removeListener).has.been.called();
     });
 
     it('Delete back can cancel complete', async () => {
     // user input ls<SPACE>, will display compelte list
-        inputString('ls ');
-        await timeout(WAIT_MS);
+        await inputString('ls ');
 
         // <BACKSPACE> now, then complete should be cancel
 
-        inputAction(BACKSPACE);
-        await timeout(WAIT_MS);
+        await inputAction(BACKSPACE);
 
-        inputString('docker');
-        await timeout(WAIT_MS);
-        inputAction(TAB);
+        await inputString('docker');
+        await inputAction(TAB);
 
         chai.expect(buffer).not.contain('lsDockerfile');
     });
 
     it('But delete should not just break complete', async () => {
     // user input ls<SPACE>docker, will display compelte list
-        inputString('ls docker');
-        await timeout(WAIT_MS);
+        await inputString('ls docker');
 
-        // <BACKSPACE> now, then complete should be cancel
+        // <BACKSPACE> now
 
-        inputAction(BACKSPACE);
-        await timeout(WAIT_MS);
+        await inputAction(BACKSPACE);
 
-        inputString('r');
-        await timeout(WAIT_MS);
-        inputAction(TAB);
-        inputString(' ');
-        await timeout(WAIT_MS);
+        await inputString('r');
+        await inputAction(TAB);
+        await inputAction(' ');
 
         chai.expect(buffer).contain('ls Dockerfile');
     });
 
     it('Ctrl C will restart line', async () => {
     // user input ls<SPACE>, will display compelte list
-        inputString('ls ');
-        await timeout(WAIT_MS);
+        await inputString('ls ');
 
         // qsh._term._app is private
         // @ts-ignore
         const startLine = chai.spy.on(qsh._term._app, 'unmount');
-        inputAction(CTRL_C);
-        await timeout(WAIT_MS);
+        await inputAction(CTRL_C);
 
         chai.expect(startLine).has.been.called();
     });
