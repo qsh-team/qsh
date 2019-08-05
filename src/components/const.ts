@@ -4,6 +4,7 @@ export const ARROW_LEFT = '\u001B[D';
 export const ARROW_RIGHT = '\u001B[C';
 export const ENTER = '\r';
 export const CTRL_C = '\x03';
+export const CTRL_A = '\x01';
 export const BACKSPACE = '\x08';
 export const DELETE = '\x7F';
 export const TAB = '\t';

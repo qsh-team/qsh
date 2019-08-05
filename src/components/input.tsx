@@ -39,7 +39,8 @@ import {
     BACKSPACE,
     DELETE,
     AUTO_COMPLETE_WIDTH,
-    CTRL_C
+    CTRL_C,
+    CTRL_A
 } from './const';
 import { CompleteItem } from '../complete-engine';
 
@@ -223,7 +224,7 @@ export class TextInput extends PureComponent<ITextInputProps> {
         this.setState({
             ...this.state,
             cursorOffset: final.length,
-            hinting: '',
+            hinting: ''
         });
     }
 
@@ -415,6 +416,11 @@ export class TextInput extends PureComponent<ITextInputProps> {
 
             [CTRL_C]: () => {
                 this.submit(null);
+            },
+
+            [CTRL_A]: () => {
+                cursorOffset = 0;
+                this.clearComplete();
             }
         };
 

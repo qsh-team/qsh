@@ -12,6 +12,7 @@ import {
     TAB,
     BACKSPACE,
     CTRL_C,
+    CTRL_A,
     ARROW_UP
 } from '../src/components/const';
 import path from 'path';
@@ -233,5 +234,36 @@ describe('QSH', () => {
                 .expect(qsh.history.indexOf((value || '') + hinting))
                 .to.not.equal(-1);
         }
+    });
+
+
+    it('Ctrl-a should move cursor to line begin and reset complete', async () => {
+        await inputString('ls DockerTestFile');
+        await inputAction(CTRL_A);
+
+        const cursor =
+          qsh._for_test_only_do_not_ues.inputComponent &&
+          qsh._for_test_only_do_not_ues.inputComponent.state.cursorOffset;
+
+        await timeout(WAIT_MS);
+        chai
+            .expect(cursor)
+            .to.equal(0);
+
+        const completes =
+            qsh._for_test_only_do_not_ues.inputComponent &&
+            qsh._for_test_only_do_not_ues.inputComponent.state.completes;
+
+        chai
+            .expect(completes && completes.length)
+            .to.equal(0);
+
+        const completeTriggered =
+            qsh._for_test_only_do_not_ues.inputComponent &&
+            qsh._for_test_only_do_not_ues.inputComponent.state.completeTriggered;
+
+        chai
+            .expect(completeTriggered)
+            .to.equal(0);
     });
 });
