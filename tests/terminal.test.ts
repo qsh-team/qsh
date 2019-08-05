@@ -135,7 +135,6 @@ describe('QSH', () => {
         await timeout(WAIT_MS);
 
         // <BACKSPACE> now, then complete should be cancel
-        buffer = '';
 
         inputAction(BACKSPACE);
         await timeout(WAIT_MS);
@@ -153,7 +152,6 @@ describe('QSH', () => {
         await timeout(WAIT_MS);
 
         // <BACKSPACE> now, then complete should be cancel
-        buffer = '';
 
         inputAction(BACKSPACE);
         await timeout(WAIT_MS);
