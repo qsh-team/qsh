@@ -49,8 +49,7 @@ describe('QSH', () => {
     const home = process.env.HOME || '/tmp';
 
     mocha.beforeEach(async () => {
-
-        // papare a test env
+    // papare a test env
         shell.rm('-rf', './test_env');
         shell.mkdir('-p', './test_env');
         shell.touch('./test_env/Dockerfile');
@@ -193,23 +192,24 @@ describe('QSH', () => {
 
         // <ARROW_UP> now, get history
 
-        // @ts-ignore
-        // eslint-disable-next-line
-    const replace = chai.spy.on(TextInput.prototype, "replaceValue");
-        // <BACKSPACE> now
+        if (qsh._for_test_only_do_not_ues.inputComponent) {
 
-        await inputAction(ARROW_UP);
+            const replace = chai.spy.on(qsh._for_test_only_do_not_ues.inputComponent, 'replaceValue');
+            // <BACKSPACE> now
 
-        chai.expect(replace).has.been.called.with('ls');
-        chai
-            .expect(qsh._for_test_only_do_not_ues.inputComponent &&
-          qsh._for_test_only_do_not_ues.inputComponent.state.cursorOffset)
-            .to.equals('ls'.length);
+            await inputAction(ARROW_UP);
+
+            chai.expect(replace).has.been.called.with('ls');
+            chai
+                .expect(qsh._for_test_only_do_not_ues.inputComponent &&
+              qsh._for_test_only_do_not_ues.inputComponent.state.cursorOffset)
+                .to.equals('ls'.length);
+        }
+
     });
 
-
     it('History hinting after complete must be right', async () => {
-        // make a history
+    // make a history
         await inputString('ls DockerTestFile');
         await inputAction(ENTER);
 
@@ -218,15 +218,19 @@ describe('QSH', () => {
         await inputString('ls d');
         await inputAction(TAB);
 
-        const hinting = qsh._for_test_only_do_not_ues.inputComponent &&
-        qsh._for_test_only_do_not_ues.inputComponent.state.hinting;
+        const hinting =
+      qsh._for_test_only_do_not_ues.inputComponent &&
+      qsh._for_test_only_do_not_ues.inputComponent.state.hinting;
 
-        const value = qsh._for_test_only_do_not_ues.inputComponent &&
-        qsh._for_test_only_do_not_ues.inputComponent.props.value;
+        const value =
+      qsh._for_test_only_do_not_ues.inputComponent &&
+      qsh._for_test_only_do_not_ues.inputComponent.props.value;
 
         await timeout(WAIT_MS);
         if (hinting) {
-            chai.expect(qsh.history.indexOf((value || '') + hinting)).to.not.equal(-1);
+            chai
+                .expect(qsh.history.indexOf((value || '') + hinting))
+                .to.not.equal(-1);
         }
     });
 });
