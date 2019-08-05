@@ -159,6 +159,7 @@ describe('QSH', () => {
         inputString('r');
         await timeout(WAIT_MS);
         inputAction(TAB);
+        inputString(' ');
         await timeout(WAIT_MS);
 
         chai.expect(buffer).contain('ls Dockerfile');
