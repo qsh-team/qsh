@@ -193,8 +193,10 @@ describe('QSH', () => {
         // <ARROW_UP> now, get history
 
         if (qsh._for_test_only_do_not_ues.inputComponent) {
-
-            const replace = chai.spy.on(qsh._for_test_only_do_not_ues.inputComponent, 'replaceValue');
+            const replace = chai.spy.on(
+                qsh._for_test_only_do_not_ues.inputComponent,
+                'replaceValue'
+            );
             // <BACKSPACE> now
 
             await inputAction(ARROW_UP);
@@ -202,10 +204,9 @@ describe('QSH', () => {
             chai.expect(replace).has.been.called.with('ls');
             chai
                 .expect(qsh._for_test_only_do_not_ues.inputComponent &&
-              qsh._for_test_only_do_not_ues.inputComponent.state.cursorOffset)
+            qsh._for_test_only_do_not_ues.inputComponent.state.cursorOffset)
                 .to.equals('ls'.length);
         }
-
     });
 
     it('History hinting after complete must be right', async () => {

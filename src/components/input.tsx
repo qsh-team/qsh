@@ -222,7 +222,8 @@ export class TextInput extends PureComponent<ITextInputProps> {
         onChange(final);
         this.setState({
             ...this.state,
-            cursorOffset: final.length
+            cursorOffset: final.length,
+            hinting: '',
         });
     }
 
@@ -314,8 +315,6 @@ export class TextInput extends PureComponent<ITextInputProps> {
         // some key will reset complete trigger, then give true to this var
         let resetComplete = false;
 
-        let skipHint = false;
-
         let justReturn = false;
 
         const KEY_MAP: any = {
@@ -336,6 +335,7 @@ export class TextInput extends PureComponent<ITextInputProps> {
             },
             [TAB]: (key: string) => {
                 // skipHint = true;
+                justReturn = true;
             },
             [ARROW_LEFT]: (key: string) => {
                 if (showCursor && !mask) {
@@ -445,9 +445,7 @@ export class TextInput extends PureComponent<ITextInputProps> {
         }
         this.setState({ cursorOffset, cursorWidth });
 
-        if (!skipHint) {
-            this.triggerHint();
-        }
+        this.triggerHint();
 
         if (value !== originalValue) {
             onChange(value);
