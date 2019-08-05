@@ -190,6 +190,7 @@ describe('QSH', () => {
     it('UP get history', async () => {
         await inputString('ls');
         await inputAction(ENTER);
+        await timeout(WAIT_MS);
 
         // <ARROW_UP> now, get history
 
