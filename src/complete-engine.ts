@@ -58,6 +58,12 @@ export default class CompleteEngine {
             pre: '\u001b[4m',
             post: '\u001b[24m',
             extract: (item) => item.text,
+        }).map(item => {
+            return {
+                ...item,
+                // give a start matcher a higher score
+                score: item.original.text.startsWith(stringToReplace) ? (item.score * 10) : item.score,
+            };
         }), item => -item.score);
 
         return menu.map(item => {

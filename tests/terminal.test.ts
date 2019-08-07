@@ -329,4 +329,16 @@ describe('QSH', () => {
 
         chai.expect(buffer).contain('ls ./dira/dirb/dirc/testfile');
     });
+
+    it('Command can be complete', async () => {
+        await inputString('ech');
+        await inputAction(TAB);
+
+        await inputString(' dockerf');
+        await inputAction(TAB);
+
+        await inputAction(ENTER);
+
+        chai.expect(colors.unstyle(buffer)).contain('echo Dockerfile');
+    });
 });
