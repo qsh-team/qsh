@@ -4,6 +4,8 @@ import path from 'path';
 import shell from 'shelljs';
 
 import _ from 'lodash';
+import fs from 'fs';
+import colors from 'ansi-colors';
 
 export default class LsCompleteBackend extends CompleteBackend {
     public trigger(line: string, triggerPos: number): boolean {
@@ -49,9 +51,40 @@ export default class LsCompleteBackend extends CompleteBackend {
             }
         } catch (e) {}
 
+        const genIcon = (pathname: string) => {
+
+            const ext = path.extname(pathname);
+
+            const fileNameTable: {[name: string]: string} = {
+                Dockerfile: colors.blueBright(''),
+                '.git': colors.redBright(''),
+                'node_modules': colors.redBright(''),
+                'gitignore': colors.redBright(''),
+
+            };
+            const extIconTable: {[name: string]: string} = {
+                '.ts': colors.blueBright('ﯤ'),
+                '.tsx': colors.blueBright('ﯤ'),
+                '.json': 'ﬥ',
+                '.js': ''
+            };
+            let result = (fileNameTable[path.basename(pathname)] || extIconTable[ext]);
+
+            if (!result) {
+                if (fs.lstatSync(pathname).isDirectory()) {
+                    result = colors.yellowBright('');
+                } else {
+                    result = '';
+                }
+            }
+
+            return ' ' + result + ' ';
+
+        };
+
         return result.map(item => ({
             value: pathPrefix + path.basename(item),
-            text: pathPrefix + path.basename(item),
+            text: genIcon(item) + pathPrefix + path.basename(item),
             score: 0
         }));
     }

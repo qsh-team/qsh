@@ -23,6 +23,7 @@ import execCommand from './command';
 import CompleteEngine from './complete-engine';
 import { initCompleteBackends } from './complete-backends';
 import { TextInput } from './components/input';
+import SignalRef from './singal-ref';
 
 export interface QSHEvent {
     init: () => void;
@@ -30,6 +31,7 @@ export interface QSHEvent {
     input: (inputString: string) => void;
     // 'get-complete-done': (completeList: IAutoComplete[]) => void;
     exit: () => void;
+    sigint: () => void;
 }
 
 interface CommandMap {
@@ -110,6 +112,11 @@ export default class QSH {
         exitHook(() => {
             this.saveHistory();
         });
+
+        const signal = new SignalRef('SIGINT', () => {
+            this.event.emit('sigint');
+        });
+
         this.event.on('exit', () => {
             this._keepRunning = false;
         });
@@ -139,6 +146,13 @@ export default class QSH {
     private cleanup() {
         this._term && this._term.shutdown();
         this._term = undefined;
+
+        process.stdin.setRawMode && process.stdin.setRawMode(false);
+
+        // @ts-ignore
+        if (!global.__IS_TESTING__) {
+            process.exit(1);
+        }
     }
 
     private async startLoop() {
@@ -146,18 +160,36 @@ export default class QSH {
             const term = new Term(this);
             this._term = term;
             let input = '';
+            let _sigint: (() => void) | null;
+
+            const triggerSigint = () => {
+                _sigint && _sigint();
+                term.shutdown();
+            };
+
+            this.event.on('sigint', triggerSigint);
+
             try {
                 input = await term.run();
             } catch (e) {}
 
+            const cleanup = () => {
+                this.event.removeListener('sigint', triggerSigint);
+                _sigint = null;
+            };
+
             if (input) {
                 try {
-                    const { processExitPromise, execPromise } = execCommand(this, input);
+                    const { processExitPromise, execPromise, sigint } = execCommand(this, input);
+                    _sigint = sigint;
                     await execPromise;
+
+                    cleanup();
 
                     this.history.unshift(input);
                 } catch (e) {
                     console.error(e);
+                    cleanup();
                 }
             }
         }

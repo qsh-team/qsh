@@ -9,6 +9,7 @@ import fs, { WriteStream } from 'fs';
 interface ExecInfo {
     execPromise: Promise<ChildProcess | void>;
     processExitPromise: Promise<ChildProcess | void>;
+    sigint: () => void;
 }
 
 // $PWD/test => /real/path/to/pwd/test
@@ -55,7 +56,10 @@ function execAST(ast: any, qsh: QSH): ExecInfo {
             const processExitPromise = qsh.commands[name](name, args);
             return {
                 processExitPromise,
-                execPromise: processExitPromise
+                execPromise: processExitPromise,
+                sigint: () => {
+                    // TODO
+                }
             };
         }
 
@@ -79,13 +83,30 @@ function execAST(ast: any, qsh: QSH): ExecInfo {
 
         return {
             processExitPromise,
-            execPromise: processExitPromise
+            execPromise: processExitPromise,
+            sigint: () => {
+                process.kill(childProcess.pid, 'SIGINT');
+            }
         };
     }
     throw new Error('Unsupport command');
 }
 
 export default function execCommand(qsh: QSH, cmd: string) {
-    const ast = parse(cmd);
-    return execAST(ast, qsh);
+    if (cmd.startsWith('>')) {
+        const code = cmd.slice(1);
+        // eslint-disable-next-line
+        const result = eval(code);
+        console.log(result);
+        return {
+            processExitPromise: Promise.resolve(),
+            execPromise: Promise.resolve(),
+            sigint: () => {
+                // todo
+            }
+        };
+    } else {
+        const ast = parse(cmd);
+        return execAST(ast, qsh);
+    }
 }

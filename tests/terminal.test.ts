@@ -57,6 +57,9 @@ describe('QSH', () => {
         shell.touch('./test_env/Dockerfile');
         shell.touch('./test_env/DocTestfile');
 
+        // @ts-ignore
+        global.__IS_TESTING__ = true;
+
         process.env.HOME = path.join('./test_env');
         shell.cd('./test_env');
 
@@ -294,5 +297,20 @@ describe('QSH', () => {
         const outputFile = path.resolve('./test.txt');
         chai.expect(fs.existsSync(outputFile)).to.equal(true);
         chai.expect(fs.readFileSync(outputFile, 'utf-8')).to.equal('test\n');
+    });
+
+    it('SIGINT should break command, but not qsh', async () => {
+        await inputString('ping www.baidu.com');
+        await inputAction(ENTER);
+
+        // qsh._term._app is private
+        // @ts-ignore
+        const unmountLine = chai.spy.on(qsh._term._app, 'unmount');
+        // SIGINT self
+        process.kill(process.pid, 'SIGINT');
+
+        await timeout(WAIT_MS);
+
+        chai.expect(unmountLine).has.been.called();
     });
 });
