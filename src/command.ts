@@ -5,6 +5,7 @@ import parse from 'bash-parser';
 import spawn from 'cross-spawn';
 import { ChildProcess, exec } from 'child_process';
 import fs, { WriteStream } from 'fs';
+import { replaceEnvPATH } from './utils';
 
 interface ExecInfo {
     execPromise: Promise<ChildProcess | void>;
@@ -12,13 +13,7 @@ interface ExecInfo {
     sigint: () => void;
 }
 
-// $PWD/test => /real/path/to/pwd/test
-// ~/test => /path/to/home/test
-function replaceEnvPATH(raw: string) {
-    return raw
-        .replace(/^~/, process.env.HOME || '')
-        .replace(/\$([^/ ]+)/g, (_, n) => process.env[n] || '');
-}
+
 
 function execAST(ast: any, qsh: QSH): ExecInfo {
     if (ast.type === 'Script') {

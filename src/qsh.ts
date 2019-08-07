@@ -13,17 +13,49 @@ import ppath from '@expo/ppath';
 // @ts-ignore
 import fixPath from 'fix-path';
 
-import { QSH_ROOT_DIR, QSH_HISTORY_FILE } from './const';
+import { QSH_ROOT_DIR, QSH_HISTORY_FILE, QSH_LOG_FILE } from './const';
 import initBuiltin from './builtin/index';
 
 import colors from 'ansi-colors';
 // @ts-ignore
 import branchName from 'branch-name';
+
 import execCommand from './command';
 import CompleteEngine from './complete-engine';
 import { initCompleteBackends } from './complete-backends';
 import { TextInput } from './components/input';
 import SignalRef from './singal-ref';
+
+
+type Color = 'black' | 'red' | 'green' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'white';
+type AwesomeSymbolType = 'powerline-right' | 'icon-terminal';
+
+const bgStyleTable = {
+    black: colors.bgBlack,
+    red: colors.bgRed,
+    green: colors.bgGreen,
+    yellow: colors.bgYellow,
+    blue: colors.bgBlue,
+    magenta: colors.bgMagenta,
+    cyan: colors.bgCyan,
+    white: colors.bgWhite,
+};
+
+const styleTable = {
+    black: colors.black,
+    red: colors.red,
+    green: colors.green,
+    yellow: colors.yellow,
+    blue: colors.blue,
+    magenta: colors.magenta,
+    cyan: colors.cyan,
+    white: colors.white,
+};
+
+const awesomeSymbolTable = {
+    'powerline-right': '',
+    'icon-terminal': '',
+};
 
 export interface QSHEvent {
     init: () => void;
@@ -53,6 +85,39 @@ export default class QSH {
         inputComponent: null,
     };
 
+    public helper = {
+
+
+        powerline: () => {
+            let fragments = '';
+            let lastColor: Color | null = null;
+
+            const that = {
+                append: (text: string, textColor: Color, color: Color) => {
+                    fragments += (lastColor ? styleTable[lastColor](bgStyleTable[color](this.helper.awesomeSymbol('powerline-right'))) : '') + String(String(bgStyleTable[color](styleTable[textColor](text))));
+                    lastColor = color;
+                    return that;
+                },
+
+                build: () => {
+                    if (lastColor) {
+                        return fragments + styleTable[lastColor](this.helper.awesomeSymbol('powerline-right'));
+                    } else {
+                        return fragments;
+                    }
+                }
+            };
+            return that;
+        },
+        awesomeSymbol: (type: AwesomeSymbolType) => {
+            if (!this.options.awesomeMode) {
+                return '';
+            } else {
+                return awesomeSymbolTable[type];
+            }
+        }
+    };
+
     public commands: CommandMap = {};
     public options = {
         promopt: (callback: (str: string) => void) => {
@@ -73,15 +138,56 @@ export default class QSH {
                 clearInterval(timer);
             };
         },
-        historyLength: 5000
+        historyLength: 5000,
+        awesomeMode: true,
     };
 
     private _keepRunning: boolean = true;
     private _term?: Term;
 
 
+    public constructor() {
+        if (this.options.awesomeMode) {
+
+            this.options.promopt = (callback: (str: string) => void) => {
+                (async () => {
+                    const cwd = ' ' + ppath(process.cwd()) + ' ';
+                    const qshText = ` ${this.helper.awesomeSymbol('icon-terminal')} QSH `;
+
+                    let branch = '';
+                    try {
+                        branch = ' ' + await branchName.get() + ' ';
+                    } catch (e) {}
+
+                    const power = this.helper.powerline().append(qshText, 'black', 'white')
+                        .append(cwd, 'blue', 'black');
+
+                    if (branch) {
+                        power.append(branch, 'black', 'yellow');
+                    }
+
+                    callback(power.build() + '\n$ ');
+
+                })();
+
+                return function cleanup() {
+                };
+            };
+        }
+    }
+
     public run() {
         this.init();
+    }
+
+    public debug(obj: any) {
+        const component = this._for_test_only_do_not_ues.inputComponent;
+        if (component) {
+            component.setState({
+                ...component.state,
+                debug: obj,
+            });
+        }
     }
 
     public registerCommand(

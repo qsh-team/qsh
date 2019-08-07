@@ -6,6 +6,8 @@ import shell from 'shelljs';
 import _ from 'lodash';
 import fs from 'fs';
 import colors from 'ansi-colors';
+import QSH from '../qsh';
+import { replaceEnvPATH } from '../utils';
 
 export default class LsCompleteBackend extends CompleteBackend {
     public trigger(line: string, triggerPos: number): boolean {
@@ -43,7 +45,7 @@ export default class LsCompleteBackend extends CompleteBackend {
         pathPrefix = stringToReplace.slice(0, stringToReplace.length - word.length);
 
         try {
-            const all = shell.ls('-A', path.resolve(pathPrefix));
+            const all = shell.ls('-A', [pathPrefix]);
             if (word.length > 0) {
                 result = all.filter(item => item.toLowerCase().startsWith(word.toLowerCase()));
             } else {
@@ -51,41 +53,52 @@ export default class LsCompleteBackend extends CompleteBackend {
             }
         } catch (e) {}
 
-        const genIcon = (pathname: string) => {
 
+
+        const genIcon = (pathname: string) => {
             const ext = path.extname(pathname);
 
-            const fileNameTable: {[name: string]: string} = {
+            const fileNameTable: { [name: string]: string } = {
                 Dockerfile: colors.blueBright(''),
                 '.git': colors.redBright(''),
-                'node_modules': colors.redBright(''),
-                'gitignore': colors.redBright(''),
-
+                node_modules: colors.redBright(''),
+                gitignore: colors.redBright('')
             };
-            const extIconTable: {[name: string]: string} = {
+            const extIconTable: { [name: string]: string } = {
                 '.ts': colors.blueBright('ﯤ'),
                 '.tsx': colors.blueBright('ﯤ'),
                 '.json': 'ﬥ',
                 '.js': ''
             };
-            let result = (fileNameTable[path.basename(pathname)] || extIconTable[ext]);
+            let result = fileNameTable[path.basename(pathname)] || extIconTable[ext];
 
             if (!result) {
-                if (fs.lstatSync(pathname).isDirectory()) {
-                    result = colors.yellowBright('');
-                } else {
+                try {
+                    if (fs.lstatSync(path.join(pathname)).isDirectory()) {
+                        result = colors.yellowBright('');
+                    } else {
+                        result = '';
+                    }
+                } catch {
                     result = '';
                 }
             }
 
             return ' ' + result + ' ';
-
         };
 
-        return result.map(item => ({
-            value: pathPrefix + path.basename(item),
-            text: genIcon(item) + pathPrefix + path.basename(item),
-            score: 0
-        }));
+
+        return result.map(item => {
+            return {
+                value: pathPrefix + path.basename(item),
+                text: genIcon(item) + pathPrefix + path.basename(item),
+                score: 0,
+            };
+        });
+        // return final.map((item: string) => ({
+        //     value: pathPrefix + path.basename(item),
+        //     text: genIcon(item) + pathPrefix + path.basename(item),
+        //     score: 0
+        // }));
     }
 }

@@ -61,7 +61,8 @@ export class TextInput extends PureComponent<ITextInputProps> {
         completeTriggered: 0,
         showCursor: true,
         hinting: '',
-        historyIndex: 0
+        historyIndex: 0,
+        debug: null,
     };
 
     private _isMounted: boolean = true;
@@ -110,7 +111,8 @@ export class TextInput extends PureComponent<ITextInputProps> {
             showCursor,
             completes,
             completeTriggered,
-            hinting
+            hinting,
+            debug,
         } = this.state;
         const hasValue = value.length > 0;
         let renderedValue = value;
@@ -180,6 +182,9 @@ export class TextInput extends PureComponent<ITextInputProps> {
                     </Box>
                 </Box>
                 <Box>{renderCompleteWithCursor(marginLeft)}</Box>
+                <Box>
+                    {debug ? JSON.stringify(debug) : null}
+                </Box>
             </Box>
         );
     }
@@ -242,7 +247,7 @@ export class TextInput extends PureComponent<ITextInputProps> {
     }
 
     private get promptLength() {
-        return colors.unstyle(this.props.prompt).length;
+        return _.get(_.last(colors.unstyle(this.props.prompt).split('\n')), 'length', 0);
     }
 
     private handleCtrlC() {

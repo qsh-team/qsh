@@ -313,4 +313,16 @@ describe('QSH', () => {
 
         chai.expect(unmountLine).has.been.called();
     });
+
+    it('dest dir can be complete', async () => {
+        shell.mkdir('-p', './dira/dirb/dirc');
+        shell.touch('./dira/dirb/dirc/testfile');
+
+        await inputString('ls ./dira/dirb/dirc/test');
+        await inputAction(TAB);
+        await inputAction(ENTER);
+
+
+        chai.expect(buffer).contain('ls ./dira/dirb/dirc/testfile');
+    });
 });

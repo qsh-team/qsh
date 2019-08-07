@@ -108,7 +108,8 @@ function Complete({
                         const bgColor = isSelect ? COLOR_BG_MENU_BRIGHT : COLOR_BG_MENU;
 
                         // color will make text longer than its real width
-                        const compensateLength = item.text.length - colors.unstyle(item.text).length;
+                        const compensateLength =
+              item.text.length - colors.unstyle(item.text).length;
 
                         return (
                             <Box key={index} width={MAX_WIDTH - 1}>
