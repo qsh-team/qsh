@@ -280,19 +280,21 @@ export class TextInput extends PureComponent<ITextInputProps> {
         );
     }
 
-    private triggerHint() {
-        const { value, qsh } = this.props;
+    private triggerHint(newValue?: string) {
+        const { value: _value, qsh } = this.props;
+
+        const value = newValue || _value;
 
         if (!value) {
             return;
         }
 
         // hint for history
-        const item = _.find(qsh.history, item => item.startsWith(value));
+        const item = _.find(qsh.history, item => item.toLowerCase().startsWith(value.toLowerCase()));
 
         if (item) {
             this.setState({
-                hinting: item.slice(value.length + 1)
+                hinting: item.slice(value.length)
             });
         } else {
             this.setState({
@@ -460,6 +462,8 @@ export class TextInput extends PureComponent<ITextInputProps> {
             return;
         }
 
+        this.triggerHint(value);
+
         if (resetComplete) {
             this.triggerComplete(value, cursorOffset);
         }
@@ -479,7 +483,6 @@ export class TextInput extends PureComponent<ITextInputProps> {
         }
         this.setState({ cursorOffset, cursorWidth });
 
-        this.triggerHint();
 
         if (value !== originalValue) {
             onChange(value);

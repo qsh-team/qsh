@@ -341,4 +341,24 @@ describe('QSH', () => {
 
         chai.expect(colors.unstyle(buffer)).contain('echo Dockerfile');
     });
+
+    it('Hinting should always startsWith input', async () => {
+        await inputString('ls Dockerfile');
+        await inputAction(ENTER);
+        await timeout(WAIT_MS * 3);
+
+        await inputString('ls do');
+        await timeout(WAIT_MS * 3);
+
+        // now should get hinting
+        chai.expect(qsh._for_test_only_do_not_ues.inputComponent && qsh._for_test_only_do_not_ues.inputComponent.state.hinting).to.contain('kerfile');
+    
+        // should give hinting containes kerfile or something
+        await inputString('a');
+        await timeout(WAIT_MS * 3);
+
+        // now no hinting
+        chai.expect(qsh._for_test_only_do_not_ues.inputComponent && qsh._for_test_only_do_not_ues.inputComponent.state.hinting).to.equals('');
+    
+    });
 });
