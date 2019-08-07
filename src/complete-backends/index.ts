@@ -8,7 +8,7 @@ export function initCompleteBackends(qsh: QSH, completeEngine: CompleteEngine) {
         qsh
     }));
 
-    // completeEngine.registerBackend(new CommandCompleteBackend({
-    //     qsh
-    // }));
+    completeEngine.registerBackend(new CommandCompleteBackend({
+        qsh
+    }));
 }

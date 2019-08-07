@@ -194,7 +194,7 @@ describe('QSH', () => {
     it('UP get history', async () => {
         await inputString('ls');
         await inputAction(ENTER);
-        await timeout(WAIT_MS);
+        await timeout(WAIT_MS * 3);
 
         // <ARROW_UP> now, get history
 
@@ -204,7 +204,7 @@ describe('QSH', () => {
 
             await inputAction(ARROW_UP);
 
-            await timeout(WAIT_MS);
+            await timeout(WAIT_MS * 3);
 
             chai.expect(replace).has.been.called.with('ls');
             chai

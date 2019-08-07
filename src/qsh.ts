@@ -103,7 +103,7 @@ export default class QSH {
         powerline: () => {
             let fragments = '';
             const rainbowColors: Color[] = ['black', 'red', 'yellow', 'green', 'cyan', 'blue', 'magenta'];
-            const textColors: Color[] = ['white', 'white', 'black', 'black', 'black', 'black', 'black'];
+            const textColors: Color[] = ['white', 'black', 'black', 'black', 'black', 'black', 'black'];
             let rainbowIndex = 0;
             let lastColor: Color | null = null;
 

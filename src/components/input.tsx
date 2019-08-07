@@ -444,6 +444,11 @@ export class TextInput extends PureComponent<ITextInputProps> {
 
             [FOCUS_OUT_EVENT]: () => {
                 this.props.qsh.isFocus = false;
+            },
+
+            ' ': () => {
+                resetComplete = true;
+                KEY_MAP[OTHER_KEY](s);
             }
         };
 
