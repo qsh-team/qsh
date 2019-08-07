@@ -29,6 +29,9 @@ const RootComponent = ({ onSubmit, qsh }: RootComponentProps) => {
 
     useEffect(() => {
         const promoptCleanup = qsh.options.promopt((prompt: string) => {
+            if (!qsh.isFocus || !isMounted.current) {
+                return;
+            }
             if (isMounted) {
                 setPromptCache(prompt);
             }

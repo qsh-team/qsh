@@ -23,6 +23,8 @@ interface ITextInputPublicProps {
     qsh: QSH;
 }
 
+let isFocus = true;
+
 interface ITextInputProps extends ITextInputPublicProps {
     stdin: NodeJS.ReadStream;
     setRawMode: (mode: boolean) => void;
@@ -40,9 +42,13 @@ import {
     DELETE,
     AUTO_COMPLETE_WIDTH,
     CTRL_C,
-    CTRL_A
+    CTRL_A,
+    FOCUS_IN_EVENT,
+    FOCUS_OUT_EVENT
 } from './const';
 import { CompleteItem } from '../complete-engine';
+
+const initalCompleteTriggered: number | null = null;
 
 export class TextInput extends PureComponent<ITextInputProps> {
     private static defaultProps = {
@@ -58,11 +64,11 @@ export class TextInput extends PureComponent<ITextInputProps> {
         cursorOffset: (this.props.value || '').length,
         cursorWidth: 0,
         completes: [] as CompleteItem[],
-        completeTriggered: 0,
+        completeTriggered: initalCompleteTriggered,
         showCursor: true,
         hinting: '',
         historyIndex: 0,
-        debug: null,
+        debug: null
     };
 
     private _isMounted: boolean = true;
@@ -112,7 +118,7 @@ export class TextInput extends PureComponent<ITextInputProps> {
             completes,
             completeTriggered,
             hinting,
-            debug,
+            debug
         } = this.state;
         const hasValue = value.length > 0;
         let renderedValue = value;
@@ -151,7 +157,7 @@ export class TextInput extends PureComponent<ITextInputProps> {
         }
 
         const renderCompleteWithCursor = (marginLeft: number) => {
-            return completeTriggered && completes ? (
+            return completeTriggered !== null && completes ? (
                 <Complete
                     items={completes}
                     onChange={this.handleCompleteChange}
@@ -162,7 +168,7 @@ export class TextInput extends PureComponent<ITextInputProps> {
             ) : null;
         };
 
-        let marginLeft = (completeTriggered + 2 + this.promptLength) % this.width;
+        let marginLeft = (completeTriggered + this.promptLength) % this.width;
 
         if (marginLeft + AUTO_COMPLETE_WIDTH > this.width) {
             marginLeft = this.width - AUTO_COMPLETE_WIDTH;
@@ -182,9 +188,7 @@ export class TextInput extends PureComponent<ITextInputProps> {
                     </Box>
                 </Box>
                 <Box>{renderCompleteWithCursor(marginLeft)}</Box>
-                <Box>
-                    {debug ? JSON.stringify(debug) : null}
-                </Box>
+                <Box>{debug ? JSON.stringify(debug) : null}</Box>
             </Box>
         );
     }
@@ -195,6 +199,8 @@ export class TextInput extends PureComponent<ITextInputProps> {
         this.isMounted = true;
         setRawMode(true);
         stdin.on('data', this.handleInput);
+
+        this.triggerComplete('', 0);
     }
 
     public componentWillUnmount() {
@@ -224,7 +230,7 @@ export class TextInput extends PureComponent<ITextInputProps> {
     private completeValue(result: string) {
         const { onChange } = this.props;
         const { completeTriggered } = this.state;
-        const final = this.props.value.slice(0, completeTriggered + 2) + result;
+        const final = this.props.value.slice(0, completeTriggered || 0) + result;
         onChange(final);
         this.setState({
             ...this.state,
@@ -242,12 +248,16 @@ export class TextInput extends PureComponent<ITextInputProps> {
         this.setState({
             ...this.state,
             completes: [],
-            completeTriggered: 0
+            completeTriggered: null
         });
     }
 
     private get promptLength() {
-        return _.get(_.last(colors.unstyle(this.props.prompt).split('\n')), 'length', 0);
+        return _.get(
+            _.last(colors.unstyle(this.props.prompt).split('\n')),
+            'length',
+            0
+        );
     }
 
     private handleCtrlC() {
@@ -414,7 +424,7 @@ export class TextInput extends PureComponent<ITextInputProps> {
           value.substr(cursorOffset, value.length);
                 cursorOffset--;
 
-                if (cursorOffset - 1 <= completeTriggered) {
+                if (cursorOffset - 1 <= (completeTriggered || 0)) {
                     resetComplete = true;
                 }
             },
@@ -426,6 +436,14 @@ export class TextInput extends PureComponent<ITextInputProps> {
             [CTRL_A]: () => {
                 cursorOffset = 0;
                 this.clearComplete();
+            },
+
+            [FOCUS_IN_EVENT]: () => {
+                this.props.qsh.isFocus = true;
+            },
+
+            [FOCUS_OUT_EVENT]: () => {
+                this.props.qsh.isFocus = false;
             }
         };
 
@@ -438,7 +456,7 @@ export class TextInput extends PureComponent<ITextInputProps> {
         }
 
         if (resetComplete) {
-            this.triggerComplete(value, cursorOffset - 1);
+            this.triggerComplete(value, cursorOffset);
         }
 
         if (cursorOffset < 0) {
@@ -461,11 +479,11 @@ export class TextInput extends PureComponent<ITextInputProps> {
         if (value !== originalValue) {
             onChange(value);
 
-            if (!completeTriggered && !resetComplete) {
-                this.triggerComplete(value, cursorOffset - 1);
+            if (completeTriggered === null && !resetComplete) {
+                this.triggerComplete(value, cursorOffset);
             }
-            if (completeTriggered && !resetComplete) {
-                this.getComplete(value, completeTriggered, cursorOffset - 1);
+            if (completeTriggered !== null && !resetComplete) {
+                this.getComplete(value, completeTriggered, cursorOffset);
             }
         }
     }
@@ -486,10 +504,10 @@ export class TextInput extends PureComponent<ITextInputProps> {
         if (qsh.completeEngine.trigger(text, pos)) {
             this.setState({
                 ...this.state,
-                completeTriggered: pos - 1
+                completeTriggered: pos
             });
 
-            this.getComplete(text, pos - 1, pos - 1);
+            this.getComplete(text, pos, pos);
         } else {
             this.clearComplete();
         }

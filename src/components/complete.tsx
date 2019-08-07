@@ -107,15 +107,16 @@ function Complete({
                         const color = isSelect ? '#000000' : '#ffffff';
                         const bgColor = isSelect ? COLOR_BG_MENU_BRIGHT : COLOR_BG_MENU;
 
+                        const title = ' ' + item.icon + ' ' + item.text;
                         // color will make text longer than its real width
                         const compensateLength =
-              item.text.length - colors.unstyle(item.text).length;
+              title.length - colors.unstyle(title).length;
 
                         return (
                             <Box key={index} width={MAX_WIDTH - 1}>
                                 <Color hex={color} bgHex={bgColor}>
                                     <Box width={MAX_WIDTH} textWrap="truncate-middle">
-                                        {item.text.padEnd(MAX_WIDTH + compensateLength, ' ')}
+                                        {title.padEnd(MAX_WIDTH + compensateLength, ' ')}
                                     </Box>
                                 </Color>
                             </Box>

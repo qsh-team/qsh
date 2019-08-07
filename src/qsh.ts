@@ -7,11 +7,14 @@ import fs from 'fs';
 import EventEmitter from 'events';
 import TypedEmitter from 'typed-emitter';
 
+
 // @ts-ignore
 import ppath from '@expo/ppath';
 
+import systeminformation from 'systeminformation';
+
 // @ts-ignore
-import fixPath from 'fix-path';
+// import fixPath from 'fix-path';
 
 import { QSH_ROOT_DIR, QSH_HISTORY_FILE, QSH_LOG_FILE } from './const';
 import initBuiltin from './builtin/index';
@@ -25,10 +28,11 @@ import CompleteEngine from './complete-engine';
 import { initCompleteBackends } from './complete-backends';
 import { TextInput } from './components/input';
 import SignalRef from './singal-ref';
+import { FOCUS_IN, FOCUS_OUT } from './components/const';
 
 
-type Color = 'black' | 'red' | 'green' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'white';
-type AwesomeSymbolType = 'powerline-right' | 'icon-terminal';
+type Color = 'black' | 'red' | 'green' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'white' | 'yellowBright';
+type AwesomeSymbolType = 'powerline-right' | 'icon-terminal' | 'icon-git-branch' | 'icon-memory' | 'icon-chip';
 
 const bgStyleTable = {
     black: colors.bgBlack,
@@ -39,6 +43,7 @@ const bgStyleTable = {
     magenta: colors.bgMagenta,
     cyan: colors.bgCyan,
     white: colors.bgWhite,
+    yellowBright: colors.bgYellowBright,
 };
 
 const styleTable = {
@@ -50,11 +55,15 @@ const styleTable = {
     magenta: colors.magenta,
     cyan: colors.cyan,
     white: colors.white,
+    yellowBright: colors.yellowBright,
 };
 
 const awesomeSymbolTable = {
     'powerline-right': '',
     'icon-terminal': '',
+    'icon-git-branch': '',
+    'icon-memory': '',
+    'icon-chip': '',
 };
 
 export interface QSHEvent {
@@ -64,6 +73,8 @@ export interface QSHEvent {
     // 'get-complete-done': (completeList: IAutoComplete[]) => void;
     exit: () => void;
     sigint: () => void;
+    'focus-out': () => void;
+    'focus-in': () => void;
 }
 
 interface CommandMap {
@@ -85,15 +96,27 @@ export default class QSH {
         inputComponent: null,
     };
 
+
     public helper = {
 
 
         powerline: () => {
             let fragments = '';
+            const rainbowColors: Color[] = ['black', 'red', 'yellow', 'green', 'cyan', 'blue', 'magenta'];
+            const textColors: Color[] = ['white', 'white', 'black', 'black', 'black', 'black', 'black'];
+            let rainbowIndex = 0;
             let lastColor: Color | null = null;
 
             const that = {
-                append: (text: string, textColor: Color, color: Color) => {
+                append: (text: string, _textColor?: Color, _color?: Color) => {
+                    let textColor = _textColor || textColors[rainbowIndex];
+                    let color = _color || rainbowColors[rainbowIndex];
+                    if (!_color) {
+                        rainbowIndex++;
+                        if (rainbowIndex >= rainbowColors.length) {
+                            rainbowIndex -= rainbowColors.length;
+                        }
+                    }
                     fragments += (lastColor ? styleTable[lastColor](bgStyleTable[color](this.helper.awesomeSymbol('powerline-right'))) : '') + String(String(bgStyleTable[color](styleTable[textColor](text))));
                     lastColor = color;
                     return that;
@@ -121,62 +144,79 @@ export default class QSH {
     public commands: CommandMap = {};
     public options = {
         promopt: (callback: (str: string) => void) => {
-            // callback(colors.green('ҩ~ '));
-            // try {
-            //   const name = await branchName.get();
-            //   callback(colors.green(`ҩ${colors.blue('[' + name + ']')}~ `));
-            // } catch (e) {}
+            let timer: NodeJS.Timeout | null = null;
 
-            // const gen = () => colors.green(`ҩ ${ppath(process.cwd())} [${new Date().toLocaleTimeString()}] > `);
-            const gen = () => colors.green(`ҩ ${ppath(process.cwd())} > `);
-            callback(gen());
-            const timer = setInterval(() => {
-                callback(gen());
-            }, 1000);
-
-            return function cleanup() {
-                clearInterval(timer);
-            };
-        },
-        historyLength: 5000,
-        awesomeMode: true,
-    };
-
-    private _keepRunning: boolean = true;
-    private _term?: Term;
-
-
-    public constructor() {
-        if (this.options.awesomeMode) {
-
-            this.options.promopt = (callback: (str: string) => void) => {
-                (async () => {
+            (async () => {
+                const buildPromopt = async () => {
                     const cwd = ' ' + ppath(process.cwd()) + ' ';
                     const qshText = ` ${this.helper.awesomeSymbol('icon-terminal')} QSH `;
 
                     let branch = '';
                     try {
-                        branch = ' ' + await branchName.get() + ' ';
+                        branch = ' ' + this.helper.awesomeSymbol('icon-git-branch') + ' ' + await branchName.get() + ' ';
                     } catch (e) {}
 
-                    const power = this.helper.powerline().append(qshText, 'black', 'white')
-                        .append(cwd, 'blue', 'black');
+                    const power = this.helper.powerline().append(qshText)
+                        .append(cwd);
 
                     if (branch) {
-                        power.append(branch, 'black', 'yellow');
+                        power.append(branch);
                     }
 
-                    callback(power.build() + '\n$ ');
+                    const cpuInfo = await systeminformation.cpu();
+                    const loadInfo = await systeminformation.currentLoad();
+                    // power.append(` ${this.helper.awesomeSymbol('icon-chip')} ${cpuInfo.brand} `);
 
-                })();
+                    power.append(` ${this.helper.awesomeSymbol('icon-chip')} ${cpuInfo.manufacturer} %${Math.floor(loadInfo.currentload)} `);
 
-                return function cleanup() {
+                    const memInfo = await systeminformation.mem();
+                    power.append(` ${this.helper.awesomeSymbol('icon-memory')} %${Math.floor(memInfo.active / memInfo.total * 100)} `);
+
+
+                    const promopt = `${power.build()}\n${colors.greenBright('$')} `;
+
+                    return promopt;
                 };
+
+                timer = setInterval(async () => {
+                    const promopt = await buildPromopt();
+                    callback(promopt);
+                }, 1000);
+
+                const promopt = await buildPromopt();
+                callback(promopt);
+
+
+            })();
+
+            return function cleanup() {
+                timer && clearInterval(timer);
+                timer = null;
             };
-        }
+        },
+        historyLength: 5000,
+        awesomeMode: true,
+        rainbowMode: true,
+    };
+
+    private _keepRunning: boolean = true;
+    private _term?: Term;
+
+    private _isFocus: boolean = true;
+
+
+    public get isFocus() {
+        return this._isFocus;
+    }
+
+    public set isFocus(val: boolean) {
+        this._isFocus = val;
+        this.event.emit(val ? 'focus-in' : 'focus-out');
     }
 
     public run() {
+        console.log(FOCUS_IN);
+        // console.log(FOCUS_OUT);
         this.init();
     }
 
@@ -210,7 +250,14 @@ export default class QSH {
     }
 
     private async init() {
-        fixPath();
+        // fixPath();
+
+        const pathEnv = process.env.PATH || '';
+
+        if (pathEnv.indexOf('/usr/local/bin') === -1) {
+            process.env.PATH += ':/usr/local/bin';
+        }
+
         await this.initHome();
 
         initBuiltin(this);

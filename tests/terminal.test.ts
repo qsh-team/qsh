@@ -204,6 +204,8 @@ describe('QSH', () => {
 
             await inputAction(ARROW_UP);
 
+            await timeout(WAIT_MS);
+
             chai.expect(replace).has.been.called.with('ls');
             chai
                 .expect(qsh._for_test_only_do_not_ues.inputComponent &&
@@ -259,7 +261,7 @@ describe('QSH', () => {
       qsh._for_test_only_do_not_ues.inputComponent &&
       qsh._for_test_only_do_not_ues.inputComponent.state.completeTriggered;
 
-        chai.expect(completeTriggered).to.equal(0);
+        chai.expect(completeTriggered).to.equal(null);
     });
 
     it('History hinting after complete must be right', async () => {
@@ -295,6 +297,9 @@ describe('QSH', () => {
         await timeout(WAIT_MS);
 
         const outputFile = path.resolve('./test.txt');
+
+        await timeout(WAIT_MS);
+
         chai.expect(fs.existsSync(outputFile)).to.equal(true);
         chai.expect(fs.readFileSync(outputFile, 'utf-8')).to.equal('test\n');
     });
@@ -321,7 +326,6 @@ describe('QSH', () => {
         await inputString('ls ./dira/dirb/dirc/test');
         await inputAction(TAB);
         await inputAction(ENTER);
-
 
         chai.expect(buffer).contain('ls ./dira/dirb/dirc/testfile');
     });

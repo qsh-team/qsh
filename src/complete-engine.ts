@@ -1,10 +1,12 @@
 import _ from 'lodash';
 import QSH from './qsh';
+import colors from 'ansi-colors';
+import fuzzy from 'fuzzy';
 
 export interface CompleteItem {
     text: string;
     value: string;
-    score?: number;
+    icon: string;
 }
 
 export interface CompleteBackendOption {
@@ -46,14 +48,25 @@ export default class CompleteEngine {
 
     public async complete(line: string, triggerPos: number, pos: number): Promise<CompleteItem[]> {
         const allComplete = this._triggeredBackends.map(async item => {
-            try {
-                return await item.complete(line, triggerPos, pos);
-            } catch (e) {
-                return [];
-            }
+            const completes = await item.complete(line, triggerPos, pos);
+            return completes;
         });
-        const result = await Promise.all(allComplete);
-        return _(result).flatten().sort().value();
+        const result = _.flatten(await Promise.all(allComplete));
+
+        const stringToReplace = line.slice(triggerPos, pos);
+        const menu = _.sortBy(fuzzy.filter(stringToReplace, result, {
+            pre: '\u001b[4m',
+            post: '\u001b[24m',
+            extract: (item) => item.text,
+        }), item => -item.score);
+
+        return menu.map(item => {
+            return {
+                text: item.string,
+                value: item.original.value,
+                icon: item.original.icon,
+            };
+        });
     }
 
 }

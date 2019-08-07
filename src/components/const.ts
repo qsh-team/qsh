@@ -11,3 +11,8 @@ export const TAB = '\t';
 
 export const AUTO_COMPLETE_WIDTH = 30;
 export const AUTO_COMPLETE_MAX_ITEMS = 8;
+
+export const FOCUS_IN = '\x1b[?1004h';
+export const FOCUS_OUT = '\x1b[?1004l';
+export const FOCUS_IN_EVENT = '\x1b[I';
+export const FOCUS_OUT_EVENT = '\x1b[O';
