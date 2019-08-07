@@ -55,10 +55,14 @@ function Complete({
 }: ICompleteProps) {
     const MAX_ITEMS = AUTO_COMPLETE_MAX_ITEMS;
     const MAX_WIDTH = width;
-    const displayItem = items.slice(0, MAX_ITEMS);
+
 
     const [selectIndex, setSelectIndex] = useState(-1);
     const isMounted = useRef(true);
+
+    const page = Math.floor((selectIndex === -1 ? 0 : selectIndex) / MAX_ITEMS);
+    const displayItem = items.slice(page * MAX_ITEMS, (page + 1) * MAX_ITEMS);
+
 
     const selectIndexRef = useRef(-1);
     selectIndexRef.current = selectIndex;
@@ -103,7 +107,7 @@ function Complete({
                     {displayItem.map((item, index) => {
                         const COLOR_BG_MENU_BRIGHT = '#44c1c3';
                         const COLOR_BG_MENU = '#00989b';
-                        const isSelect = index === selectIndex;
+                        const isSelect = index === selectIndex % MAX_ITEMS;
                         const color = isSelect ? '#000000' : '#ffffff';
                         const bgColor = isSelect ? COLOR_BG_MENU_BRIGHT : COLOR_BG_MENU;
 

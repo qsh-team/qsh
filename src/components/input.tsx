@@ -157,13 +157,15 @@ export class TextInput extends PureComponent<ITextInputProps> {
         }
 
         const renderCompleteWithCursor = (marginLeft: number) => {
-            return <Complete
-                items={completes}
-                onChange={this.handleCompleteChange}
-                onSubmit={this.handleCompleteSubmit}
-                width={AUTO_COMPLETE_WIDTH}
-                marginLeft={marginLeft}
-            ></Complete>;
+            return (
+                <Complete
+                    items={completes}
+                    onChange={this.handleCompleteChange}
+                    onSubmit={this.handleCompleteSubmit}
+                    width={AUTO_COMPLETE_WIDTH}
+                    marginLeft={marginLeft}
+                ></Complete>
+            );
         };
 
         let marginLeft = (completeTriggered + this.promptLength) % this.width;
