@@ -31,10 +31,10 @@ function getExecsCompletes(qsh: QSH, searchDirs: string[], keepPrefix = false) {
     });
 
     return execFiles.map((item: string) => {
-        const name = path.basename(item);
+        const name = (keepPrefix ? searchDirs[0] : '') + path.basename(item);
         return {
             value: name,
-            text: `${name}`,
+            text: name,
             icon: qsh.helper.awesomeSymbol('icon-terminal')
         };
     });

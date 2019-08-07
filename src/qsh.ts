@@ -90,7 +90,7 @@ export default class QSH {
     QSHEvent
     >;
     public history: string[] = [];
-    public completeEngine: CompleteEngine = new CompleteEngine();
+    public completeEngine: CompleteEngine = new CompleteEngine(this);
 
     public _for_test_only_do_not_ues: TestOnlyObject = {
         inputComponent: null,
@@ -215,7 +215,7 @@ export default class QSH {
     }
 
     public run() {
-        console.log(FOCUS_IN);
+        process.stdout.write(FOCUS_IN);
         // console.log(FOCUS_OUT);
         this.init();
     }

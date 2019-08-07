@@ -32,6 +32,11 @@ export class CompleteBackend {
 export default class CompleteEngine {
     private _backends: CompleteBackend[] = [];
     private _triggeredBackends: CompleteBackend[] = [];
+    private _qsh: QSH;
+
+    public constructor(qsh: QSH) {
+        this._qsh = qsh;
+    }
 
     public registerBackend(backend: CompleteBackend) {
         this._backends.push(backend);

@@ -142,13 +142,13 @@ export class TextInput extends PureComponent<ITextInputProps> {
 
             if (value.length > 0 && cursorOffset === value.length) {
                 if (hinting) {
-                    renderedValue += chalk.inverse(chalk.gray(hinting[0]));
-                    renderedValue += chalk.gray(hinting.slice(1));
+                    renderedValue += colors.inverse(colors.gray(hinting[0]));
+                    renderedValue += colors.gray(hinting.slice(1));
                 } else {
-                    renderedValue += chalk.inverse(' ');
+                    renderedValue += colors.inverse(' ');
                 }
             } else if (hinting) {
-                renderedValue += chalk.gray(hinting);
+                renderedValue += colors.gray(hinting);
             }
         }
 
@@ -157,15 +157,13 @@ export class TextInput extends PureComponent<ITextInputProps> {
         }
 
         const renderCompleteWithCursor = (marginLeft: number) => {
-            return completeTriggered !== null && completes ? (
-                <Complete
-                    items={completes}
-                    onChange={this.handleCompleteChange}
-                    onSubmit={this.handleCompleteSubmit}
-                    width={AUTO_COMPLETE_WIDTH}
-                    marginLeft={marginLeft}
-                ></Complete>
-            ) : null;
+            return <Complete
+                items={completes}
+                onChange={this.handleCompleteChange}
+                onSubmit={this.handleCompleteSubmit}
+                width={AUTO_COMPLETE_WIDTH}
+                marginLeft={marginLeft}
+            ></Complete>;
         };
 
         let marginLeft = (completeTriggered + this.promptLength) % this.width;
@@ -482,7 +480,6 @@ export class TextInput extends PureComponent<ITextInputProps> {
             }
         }
         this.setState({ cursorOffset, cursorWidth });
-
 
         if (value !== originalValue) {
             onChange(value);

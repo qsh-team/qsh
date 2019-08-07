@@ -25,7 +25,7 @@ const timeout = async function(ms: number) {
     });
 };
 
-const WAIT_MS = 10;
+const WAIT_MS = 30;
 
 chai.use(spies);
 
@@ -342,6 +342,20 @@ describe('QSH', () => {
         chai.expect(colors.unstyle(buffer)).contain('echo Dockerfile');
     });
 
+    it('Command can be complete local executable file', async () => {
+        fs.writeFileSync(path.join('./test.sh'), '#!/bin/bash\n');
+
+        await inputString('chmod +x ./test.sh');
+        await inputAction(ENTER);
+
+        await inputString('./test');
+        await inputAction(TAB);
+        await inputString(' test');
+
+        chai.expect(colors.unstyle(buffer)).contain('./test.sh test');
+
+    });
+
     it('Hinting should always startsWith input', async () => {
         await inputString('ls Dockerfile');
         await inputAction(ENTER);
@@ -351,14 +365,19 @@ describe('QSH', () => {
         await timeout(WAIT_MS * 3);
 
         // now should get hinting
-        chai.expect(qsh._for_test_only_do_not_ues.inputComponent && qsh._for_test_only_do_not_ues.inputComponent.state.hinting).to.contain('kerfile');
-    
+        chai
+            .expect(qsh._for_test_only_do_not_ues.inputComponent &&
+          qsh._for_test_only_do_not_ues.inputComponent.state.hinting)
+            .to.contain('kerfile');
+
         // should give hinting containes kerfile or something
         await inputString('a');
         await timeout(WAIT_MS * 3);
 
         // now no hinting
-        chai.expect(qsh._for_test_only_do_not_ues.inputComponent && qsh._for_test_only_do_not_ues.inputComponent.state.hinting).to.equals('');
-    
+        chai
+            .expect(qsh._for_test_only_do_not_ues.inputComponent &&
+          qsh._for_test_only_do_not_ues.inputComponent.state.hinting)
+            .to.equals('');
     });
 });
