@@ -83,7 +83,9 @@ const NewTextInput = ({
     const submit = (text: string | null) => {
         const submitText = text;
         clearComplete();
-        clearHinting();
+        // clearHinting();
+
+        store.showCursor = false;
 
         updateState(() => {
             onSubmit(submitText);
@@ -108,45 +110,45 @@ const NewTextInput = ({
         }
     };
 
-    const clearHinting = () => {
-        store.hinting = '';
-    };
+    // const clearHinting = () => {
+    //     store.hinting = '';
+    // };
 
     const replaceValue = (result: string) => {
         store.input = result;
         clearComplete();
 
         store.cursorOffset = store.input.length;
-        clearHinting();
+        // clearHinting();
     };
-
-    const triggerHint = () => {
-        if (!store.input) {
-            return;
-        }
-
-        // hint for history
-        const item = _.find(qsh.history, item => item.toLowerCase().startsWith(store.input.toLowerCase()));
-
-        if (item) {
-            store.hinting = item.slice(store.input.length);
-        } else {
-            store.hinting = '';
-        }
-    };
+    //
+    // const triggerHint = () => {
+    //     if (!store.input) {
+    //         return;
+    //     }
+    //
+    //     // hint for history
+    //     const item = _.find(qsh.history, item => item.toLowerCase().startsWith(store.input.toLowerCase()));
+    //
+    //     if (item) {
+    //         store.hinting = item.slice(store.input.length);
+    //     } else {
+    //         store.hinting = '';
+    //     }
+    // };
 
     const completeValue = (result: string) => {
         const final = store.input.slice(0, store.completeTriggered || 0) + result;
 
         store.input = final;
-        store.hinting = '';
+        // store.hinting = '';
         store.cursorOffset = final.length;
     };
 
     const handleInput = (data: Buffer) => {
         const OTHER_KEY = 'other_key';
 
-        if (isMouted.current === false) {
+        if (!isMouted.current) {
             return;
         }
 
@@ -267,7 +269,7 @@ const NewTextInput = ({
             return;
         }
 
-        triggerHint();
+        // triggerHint();
 
         if (resetComplete) {
             triggerComplete();
@@ -279,12 +281,12 @@ const NewTextInput = ({
         if (store.cursorOffset > store.input.length) {
             store.cursorOffset = store.input.length;
 
-            resetComplete = true;
+            // resetComplete = true;
 
-            if (store.hinting) {
-                replaceValue(store.input + store.hinting);
-                return;
-            }
+            // if (store.hinting) {
+            //     replaceValue(store.input + store.hinting);
+            //     return;
+            // }
         }
 
         if (store.completeTriggered === null && !resetComplete) {
@@ -313,6 +315,7 @@ const NewTextInput = ({
         store.completeTriggered = 0;
         store.cursorOffset = 0;
         store.input = '';
+        store.showCursor = true;
 
         return function cleanup() {
             stdin.removeListener('data', handleInput);
@@ -329,7 +332,7 @@ const NewTextInput = ({
     let i = 0;
 
     for (const char of store.input) {
-        if (i >= store.cursorOffset && i <= store.cursorOffset) {
+        if (i >= store.cursorOffset && i <= store.cursorOffset && store.showCursor) {
             renderedValue += colors.inverse(char);
         } else {
             renderedValue += char;
@@ -338,21 +341,22 @@ const NewTextInput = ({
         i++;
     }
 
-    if (store.input.length > 0 && store.cursorOffset === store.input.length) {
-        if (store.hinting) {
-            renderedValue += colors.inverse(colors.gray(store.hinting[0]));
-            renderedValue += colors.gray(store.hinting.slice(1));
-        } else {
-            renderedValue += colors.inverse(' ');
-        }
-    } else if (store.hinting) {
-        renderedValue += colors.gray(store.hinting);
+    if (store.input.length > 0 && store.cursorOffset === store.input.length && store.showCursor) {
+        // if (store.hinting) {
+        //     renderedValue += colors.inverse(colors.gray(store.hinting[0]));
+        //     renderedValue += colors.gray(store.hinting.slice(1));
+        // } else {
+        renderedValue += colors.inverse(' ');
+        // }
     }
+    // else if (store.hinting) {
+    //     renderedValue += colors.gray(store.hinting);
+    // }
 
-    // const handleCompleteSubmit = (result: string) => {
-    //     completeValue(result);
-    //     clearComplete();
-    // };
+    const handleCompleteSubmit = (result: string) => {
+        completeValue(result);
+        clearComplete();
+    };
 
     const promptLength = () => {
         return _.get(_.last(colors.unstyle(store.prompt).split('\n')), 'length', 0);
@@ -363,7 +367,6 @@ const NewTextInput = ({
             <Complete
                 items={store.completes}
                 onChange={completeValue}
-        // onSubmit={handleCompleteSubmit}
                 width={AUTO_COMPLETE_WIDTH}
                 marginLeft={marginLeft}
                 qsh={qsh}

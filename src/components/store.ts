@@ -12,9 +12,10 @@ export interface QshStore {
     completes: CompleteItem[];
     completeTriggered: number | null;
     showCursor: boolean;
-    hinting: string;
+    // hinting: string;
     historyIndex: number;
     debug: string;
+
 }
 
 const store: QshStore = {
@@ -26,7 +27,7 @@ const store: QshStore = {
     completes: [] as CompleteItem[],
     completeTriggered: 0,
     showCursor: true,
-    hinting: '',
+    // hinting: '',
     historyIndex: -1,
     debug: ''
 };

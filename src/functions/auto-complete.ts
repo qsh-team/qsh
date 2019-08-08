@@ -30,7 +30,7 @@ export function autoComplete(
         );
         let output = '';
         child.stdout &&
-      child.stdout.on('data', data => {
+      child.stdout.on('data', (data: Buffer) => {
           output += data.toString();
       });
 

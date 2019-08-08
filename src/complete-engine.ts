@@ -7,6 +7,7 @@ export interface CompleteItem {
     text: string;
     value: string;
     icon: string;
+    weight?: number;
 }
 
 export interface CompleteBackendOption {
@@ -64,10 +65,12 @@ export default class CompleteEngine {
             post: '\u001b[24m',
             extract: (item) => item.text,
         }).map(item => {
+            const score = item.original.text.startsWith(stringToReplace) ? (item.score * 3) : item.score;
+
             return {
                 ...item,
                 // give a start matcher a higher score
-                score: item.original.text.startsWith(stringToReplace) ? (item.score * 10) : item.score,
+                score: score * (item.original.weight || 1),
             };
         }), item => -item.score);
 

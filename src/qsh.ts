@@ -34,7 +34,8 @@ import {
 } from './components/store';
 
 type Color = 'black' | 'red' | 'green' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'white' | 'yellowBright';
-type AwesomeSymbolType = 'powerline-right' | 'icon-terminal' | 'icon-git-branch' | 'icon-memory' | 'icon-chip';
+type AwesomeSymbolType = 'powerline-right' | 'icon-terminal' | 'icon-git-branch' | 'icon-memory' | 'icon-chip'
+    | 'icon-history';
 
 const bgStyleTable = {
     black: colors.bgBlack,
@@ -66,6 +67,7 @@ const awesomeSymbolTable = {
     'icon-git-branch': '',
     'icon-memory': '',
     'icon-chip': '',
+    'icon-history': '',
 };
 
 export interface QSHEvent {
@@ -154,13 +156,24 @@ export default class QSH {
     };
 
     public commands: CommandMap = {};
+    public alias: {[name: string]: string} = {
+        'ls': 'ls -G'
+    };
     public options = {
         promopt: (callback: (str: string) => void) => {
             let timer: NodeJS.Timeout | null = null;
 
             (async () => {
                 const buildPromopt = async () => {
-                    const cwd = ' ' + ppath(process.cwd()) + ' ';
+                    const prettyPathArray = ppath(process.cwd()).split('/');
+                    prettyPathArray.forEach((item: string, index: number) => {
+                        if (index === prettyPathArray.length - 1) {
+                            prettyPathArray[index] = item;
+                        } else {
+                            prettyPathArray[index] = item[item.length - 1];
+                        }
+                    });
+                    const cwd = ' ' + prettyPathArray.join('/') + ' ';
                     const qshText = ` ${this.helper.awesomeSymbol('icon-terminal')} QSH `;
 
                     let branch = '';
@@ -179,7 +192,7 @@ export default class QSH {
                     const loadInfo = await systeminformation.currentLoad();
                     // power.append(` ${this.helper.awesomeSymbol('icon-chip')} ${cpuInfo.brand} `);
 
-                    power.append(` ${this.helper.awesomeSymbol('icon-chip')} ${cpuInfo.manufacturer} %${Math.floor(loadInfo.currentload)} `);
+                    power.append(` ${this.helper.awesomeSymbol('icon-chip')} ${cpuInfo.brand} %${Math.floor(loadInfo.currentload)} `);
 
                     const memInfo = await systeminformation.mem();
                     power.append(` ${this.helper.awesomeSymbol('icon-memory')} %${Math.floor(memInfo.active / memInfo.total * 100)} `);
@@ -252,8 +265,8 @@ export default class QSH {
 
     private async initHome() {
         // const unlock = await lock();
-        if (!fs.existsSync(QSH_ROOT_DIR)) {
-            fs.mkdirSync(QSH_ROOT_DIR);
+        if (!fs.existsSync(QSH_ROOT_DIR())) {
+            fs.mkdirSync(QSH_ROOT_DIR());
         }
     }
 
@@ -291,14 +304,14 @@ export default class QSH {
     private initHistory() {
         let content = '';
         try {
-            content = fs.readFileSync(QSH_HISTORY_FILE, 'utf-8');
+            content = fs.readFileSync(QSH_HISTORY_FILE(), 'utf-8');
         } catch (e) {}
         this.history = content.split('\n');
     }
 
     private saveHistory() {
         fs.writeFileSync(
-            QSH_HISTORY_FILE,
+            QSH_HISTORY_FILE(),
             this.history.slice(0, this.options.historyLength).join('\n'),
             'utf-8'
         );

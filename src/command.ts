@@ -26,7 +26,7 @@ function execAST(ast: any, qsh: QSH): ExecInfo {
         }
         return last;
     } else if (ast.type === 'Command') {
-        const name = replaceEnvPATH(ast.name.text);
+        let name = replaceEnvPATH(ast.name.text);
         // let args = (ast.suffix && ast.suffix.filter((item: any) => item.type === 'Word').map((item: any) => item.text)) || [];
         let args = [];
         let redirect: WriteStream | null = null;
@@ -46,6 +46,12 @@ function execAST(ast: any, qsh: QSH): ExecInfo {
 
         args = args.map((item: string) => replaceEnvPATH(item));
         const async = ast.async;
+
+        const alias = qsh.alias[name];
+        if (alias) {
+            name = alias.split(' ')[0];
+            args = alias.split(' ').slice(1).concat(args);
+        }
 
         if (qsh.commands[name]) {
             const processExitPromise = qsh.commands[name](name, args);

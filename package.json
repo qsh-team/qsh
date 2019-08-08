@@ -1,104 +1,105 @@
 {
-    "name": "qsh",
-    "version": "1.0.9",
-    "description": "",
-    "main": "index.js",
-    "files": [
-        "bin",
-        "lib",
-        "vendor"
-    ],
-    "scripts": {
-        "dev": "tsc -w",
-        "test": "nyc mocha -r ts-node/register tests/**/*.test.ts --exit",
-        "lint": "eslint --fix --ext .tsx,.ts src tests",
-        "pretty": "npx prettier-eslint --parser typescript --write src/**/*.ts src/**/*.tsx tests/**/*.ts test/**/*.tsx",
-        "docker:build": "docker build . --tag qsh",
-        "docker:run": "docker run -it qsh /usr/src/app/bin/local",
-        "docker:test": "docker run -it qsh /bin/bash -c \"cd /usr/src/app; npm run test\"",
-        "docker:lint": "docker run -it qsh /bin/bash -c \"cd /usr/src/app; npm run lint\""
-    },
-    "bin": {
-        "qsh": "./bin/qsh"
-    },
-    "husky": {
-        "hooks": {
-            "pre-commit": "npm run pretty ; npm run lint"
-        }
-    },
-    "author": "",
-    "license": "ISC",
-    "nyc": {
-        "include": [
-            "src/**/*.ts",
-            "src/**/*.tsx"
-        ],
-        "extension": [
-            ".ts",
-            ".tsx"
-        ],
-        "require": [
-            "ts-node/register"
-        ],
-        "reporter": [
-            "text-summary",
-            "html"
-        ],
-        "sourceMap": true,
-        "instrument": true
-    },
-    "dependencies": {
-        "@expo/ppath": "^3.2.2",
-        "@types/chai-spies": "^1.0.0",
-        "ansi-colors": "^4.1.1",
-        "bash-parser": "^0.5.0",
-        "branch-name": "^1.0.0",
-        "chai-spies": "^1.0.0",
-        "cross-spawn": "^6.0.5",
-        "executable": "^4.1.1",
-        "exit-hook": "^2.2.0",
-        "fix-path": "^2.1.0",
-        "fs-extra-promise": "^1.0.1",
-        "fuzzy": "^0.1.3",
-        "ink": "^2.3.0",
-        "ink-tab": "^2.1.3",
-        "ink-text-input": "^3.2.1",
-        "lodash": "^4.17.15",
-        "memoizee": "^0.4.14",
-        "mobx": "^5.13.0",
-        "mobx-react-lite": "^1.4.1",
-        "react": "^16.8.6",
-        "shelljs": "^0.8.3",
-        "systeminformation": "^4.14.4",
-        "typed-emitter": "^0.1.0",
-        "typescript": "^3.5.3",
-        "undux": "^5.0.0-beta.22"
-    },
-    "devDependencies": {
-        "@types/chai": "^4.1.7",
-        "@types/cross-spawn": "^6.0.0",
-        "@types/fs-extra-promise": "^1.0.8",
-        "@types/lodash": "^4.14.136",
-        "@types/memoizee": "^0.4.2",
-        "@types/mocha": "^5.2.7",
-        "@types/node": "^12.6.8",
-        "@types/react": "^16.8.25",
-        "@types/shelljs": "^0.8.5",
-        "@typescript-eslint/eslint-plugin": "^1.13.0",
-        "@typescript-eslint/parser": "^1.13.0",
-        "babel-eslint": "^10.0.2",
-        "chai": "^4.2.0",
-        "eslint": "^6.1.0",
-        "eslint-config-alloy": "^2.0.5",
-        "eslint-config-prettier": "^6.0.0",
-        "eslint-plugin-react": "^7.14.3",
-        "husky": "^3.0.2",
-        "mocha": "^6.2.0",
-        "nyc": "^14.1.1",
-        "prettier": "^1.18.2",
-        "prettier-eslint": "^9.0.0",
-        "prettier-eslint-cli": "^5.0.0",
-        "ts-node": "^8.3.0",
-        "typescript": "^3.5.3"
+  "name": "qsh",
+  "version": "1.0.9",
+  "description": "",
+  "main": "index.js",
+  "files": [
+    "bin",
+    "lib",
+    "vendor"
+  ],
+  "scripts": {
+    "dev": "tsc -w",
+    "test": "nyc mocha -r ts-node/register tests/**/*.test.ts --exit",
+    "lint": "eslint --fix --ext .tsx,.ts src tests",
+    "pretty": "npx prettier-eslint --parser typescript --write src/**/*.ts src/**/*.tsx tests/**/*.ts test/**/*.tsx",
+    "docker:build": "docker build . --tag qsh",
+    "docker:run": "docker run -it qsh /usr/src/app/bin/local",
+    "docker:test": "docker run -it qsh /bin/bash -c \"cd /usr/src/app; npm run test\"",
+    "docker:lint": "docker run -it qsh /bin/bash -c \"cd /usr/src/app; npm run lint\""
+  },
+  "bin": {
+    "qsh": "./bin/qsh"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run pretty ; npm run lint"
     }
+  },
+  "author": "",
+  "license": "ISC",
+  "nyc": {
+    "include": [
+      "src/**/*.ts",
+      "src/**/*.tsx"
+    ],
+    "extension": [
+      ".ts",
+      ".tsx"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "reporter": [
+      "text-summary",
+      "html"
+    ],
+    "sourceMap": true,
+    "instrument": true
+  },
+  "dependencies": {
+    "@expo/ppath": "^3.2.2",
+    "@types/chai-spies": "^1.0.0",
+    "ansi-colors": "^4.1.1",
+    "bash-parser": "^0.5.0",
+    "branch-name": "^1.0.0",
+    "chai-spies": "^1.0.0",
+    "cross-spawn": "^6.0.5",
+    "executable": "^4.1.1",
+    "exit-hook": "^2.2.0",
+    "fix-path": "^2.1.0",
+    "fs-extra-promise": "^1.0.1",
+    "fuzzy": "^0.1.3",
+    "ink": "^2.3.0",
+    "ink-tab": "^2.1.3",
+    "ink-text-input": "^3.2.1",
+    "lodash": "^4.17.15",
+    "memoizee": "^0.4.14",
+    "mobx": "^5.13.0",
+    "mobx-logger": "^0.7.1",
+    "mobx-react-lite": "^1.4.1",
+    "react": "^16.8.6",
+    "shelljs": "^0.8.3",
+    "systeminformation": "^4.14.4",
+    "typed-emitter": "^0.1.0",
+    "typescript": "^3.5.3",
+    "undux": "^5.0.0-beta.22"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/cross-spawn": "^6.0.0",
+    "@types/fs-extra-promise": "^1.0.8",
+    "@types/lodash": "^4.14.136",
+    "@types/memoizee": "^0.4.2",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.7.1",
+    "@types/react": "^16.8.25",
+    "@types/shelljs": "^0.8.5",
+    "@typescript-eslint/eslint-plugin": "^1.13.0",
+    "@typescript-eslint/parser": "^1.13.0",
+    "babel-eslint": "^10.0.2",
+    "chai": "^4.2.0",
+    "eslint": "^6.1.0",
+    "eslint-config-alloy": "^2.0.5",
+    "eslint-config-prettier": "^6.0.0",
+    "eslint-plugin-react": "^7.14.3",
+    "husky": "^3.0.2",
+    "mocha": "^6.2.0",
+    "nyc": "^14.1.1",
+    "prettier": "^1.18.2",
+    "prettier-eslint": "^9.0.0",
+    "prettier-eslint-cli": "^5.0.0",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.3"
+  }
 }
