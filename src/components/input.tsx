@@ -164,6 +164,7 @@ export class TextInput extends PureComponent<ITextInputProps> {
                     onSubmit={this.handleCompleteSubmit}
                     width={AUTO_COMPLETE_WIDTH}
                     marginLeft={marginLeft}
+                    qsh={this.props.qsh}
                 ></Complete>
             );
         };

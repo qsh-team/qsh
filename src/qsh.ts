@@ -83,6 +83,11 @@ interface CommandMap {
 
 interface TestOnlyObject {
     inputComponent: TextInput| null;
+    completeComponent: {
+        state: {
+            completesTextToDisplay: string[];
+        };
+    };
 }
 
 export default class QSH {
@@ -94,6 +99,11 @@ export default class QSH {
 
     public _for_test_only_do_not_ues: TestOnlyObject = {
         inputComponent: null,
+        completeComponent: {
+            state: {
+                completesTextToDisplay: [],
+            },
+        },
     };
 
 

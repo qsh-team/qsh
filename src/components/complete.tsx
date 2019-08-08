@@ -4,6 +4,7 @@ import _ from 'lodash';
 import { TAB, ENTER, AUTO_COMPLETE_MAX_ITEMS, ARROW_DOWN } from './const';
 import { CompleteItem } from '../complete-engine';
 import colors from 'ansi-colors';
+import QSH from '../qsh';
 
 interface ICompletePublicProps {
     onChange: (str: string) => void;
@@ -11,6 +12,7 @@ interface ICompletePublicProps {
     items: CompleteItem[];
     width: number;
     marginLeft: number;
+    qsh: QSH;
 }
 
 interface ICompleteProps extends ICompletePublicProps {
@@ -51,18 +53,17 @@ function Complete({
     onChange,
     width,
     marginLeft,
-    onSubmit
+    onSubmit,
+    qsh,
 }: ICompleteProps) {
     const MAX_ITEMS = AUTO_COMPLETE_MAX_ITEMS;
     const MAX_WIDTH = width;
-
 
     const [selectIndex, setSelectIndex] = useState(-1);
     const isMounted = useRef(true);
 
     const page = Math.floor((selectIndex === -1 ? 0 : selectIndex) / MAX_ITEMS);
     const displayItem = items.slice(page * MAX_ITEMS, (page + 1) * MAX_ITEMS);
-
 
     const selectIndexRef = useRef(-1);
     selectIndexRef.current = selectIndex;
@@ -99,6 +100,8 @@ function Complete({
             setSelectIndex(-1);
         };
     }, [items]);
+
+    qsh._for_test_only_do_not_ues.completeComponent.state.completesTextToDisplay = displayItem.map(item => item.text);
 
     return (
         <Box marginLeft={marginLeft} flexDirection="column">

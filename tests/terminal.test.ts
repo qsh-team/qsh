@@ -352,7 +352,7 @@ describe('QSH', () => {
         await inputAction(TAB);
         await inputString(' test');
 
-        chai.expect(colors.unstyle(buffer)).contain('./test.sh test');
+        chai.expect(qsh._for_test_only_do_not_ues.inputComponent && qsh._for_test_only_do_not_ues.inputComponent.props.value).contain('./test.sh test');
     });
 
     it('Hinting should always startsWith input', async () => {
@@ -380,7 +380,6 @@ describe('QSH', () => {
             .to.equals('');
     });
 
-
     it('Autocomplete can scroll', async () => {
         shell.touch('file1');
         shell.touch('file2');
@@ -393,6 +392,8 @@ describe('QSH', () => {
         shell.touch('file9');
         shell.touch('file99');
 
+        await timeout(WAIT_MS);
+
         await inputString('ls file');
         for (let i = 0; i < 8; i++) {
             await inputAction(TAB);
@@ -400,10 +401,10 @@ describe('QSH', () => {
 
         // file99 can not be complete, but show in next page
 
-        chai.expect(colors.unstyle(buffer)).not.contain('file99');
+        chai.expect(qsh._for_test_only_do_not_ues.completeComponent.state.completesTextToDisplay.map(item => colors.unstyle(item))).not.contains('file99');
 
         await inputAction(TAB);
 
-        chai.expect(colors.unstyle(buffer)).contain('file99');
+        chai.expect(qsh._for_test_only_do_not_ues.completeComponent.state.completesTextToDisplay.map(item => colors.unstyle(item))).contains('file99');
     });
 });
