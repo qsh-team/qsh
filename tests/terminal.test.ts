@@ -178,7 +178,7 @@ describe('QSH', () => {
         await inputAction(TAB);
         await inputAction(' ');
 
-        chai.expect(qsh.history).contain('ls Dockerfile');
+        chai.expect(qsh._for_test_only_do_not_ues.store && qsh._for_test_only_do_not_ues.store.input).contain('ls Dockerfile');
     });
 
     it('Ctrl C will restart line', async () => {

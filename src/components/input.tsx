@@ -404,7 +404,7 @@ ITextInputPublicProps
                     <ObserverNewTextInput
                         {...this.props}
                         stdin={stdin}
-                        // @ts-ignore
+            // @ts-ignore
                         setRawMode={setRawMode}
                     />
                 )}
