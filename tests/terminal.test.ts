@@ -17,7 +17,6 @@ import {
     ARROW_UP
 } from '../src/components/const';
 import path from 'path';
-import { TextInput } from '../src/components/input';
 
 const timeout = async function(ms: number) {
     return new Promise(resolve => {
@@ -25,20 +24,26 @@ const timeout = async function(ms: number) {
     });
 };
 
-const WAIT_MS = 30;
+const WAIT_MS = 20;
 
 chai.use(spies);
 
 async function inputString(str: string) {
+    await timeout(WAIT_MS);
+
     for (let ch of str) {
         process.stdin.emit('data', Buffer.from(ch));
     }
+
     await timeout(WAIT_MS);
+
 }
 
 async function inputAction(str: string) {
+    await timeout(WAIT_MS);
     process.stdin.emit('data', Buffer.from(str));
     await timeout(WAIT_MS);
+
 }
 
 describe('QSH', () => {
@@ -86,11 +91,14 @@ describe('QSH', () => {
         shell.cd(cwd);
     });
 
+
     it('exit<enter> should call QSH.cleanup', async () => {
         const cleanup = chai.spy.on(qsh, 'cleanup');
-
         await inputString('exit');
+
         await inputAction(ENTER);
+
+        await timeout(WAIT_MS * 3);
 
         // const result = mockIO.end();
 
@@ -165,9 +173,6 @@ describe('QSH', () => {
     // user input ls<SPACE>docker, will display compelte list
         await inputString('ls docker');
 
-        // @ts-ignore
-        // eslint-disable-next-line
-    const complete = chai.spy.on(TextInput.prototype, "completeValue");
         // <BACKSPACE> now
 
         await inputAction(BACKSPACE);
@@ -176,7 +181,7 @@ describe('QSH', () => {
         await inputAction(TAB);
         await inputAction(' ');
 
-        chai.expect(complete).has.been.called.with('Dockerfile');
+        chai.expect(qsh.history).contain('ls Dockerfile');
     });
 
     it('Ctrl C will restart line', async () => {
@@ -198,18 +203,19 @@ describe('QSH', () => {
 
         // <ARROW_UP> now, get history
 
-        if (qsh._for_test_only_do_not_ues.inputComponent) {
-            const replace = chai.spy.on(TextInput.prototype, 'replaceValue');
+        if (qsh._for_test_only_do_not_ues.store) {
             // <BACKSPACE> now
 
             await inputAction(ARROW_UP);
 
             await timeout(WAIT_MS * 3);
 
-            chai.expect(replace).has.been.called.with('ls');
             chai
-                .expect(qsh._for_test_only_do_not_ues.inputComponent &&
-            qsh._for_test_only_do_not_ues.inputComponent.state.cursorOffset)
+                .expect(qsh._for_test_only_do_not_ues.store.input)
+                .to.equals('ls');
+
+            chai
+                .expect(qsh._for_test_only_do_not_ues.store.input.length)
                 .to.equals('ls'.length);
         }
     });
@@ -225,12 +231,12 @@ describe('QSH', () => {
         await inputAction(TAB);
 
         const hinting =
-      qsh._for_test_only_do_not_ues.inputComponent &&
-      qsh._for_test_only_do_not_ues.inputComponent.state.hinting;
+      qsh._for_test_only_do_not_ues.store &&
+      qsh._for_test_only_do_not_ues.store.hinting;
 
         const value =
-      qsh._for_test_only_do_not_ues.inputComponent &&
-      qsh._for_test_only_do_not_ues.inputComponent.props.value;
+      qsh._for_test_only_do_not_ues.store &&
+      qsh._for_test_only_do_not_ues.store.input;
 
         await timeout(WAIT_MS);
         if (hinting) {
@@ -245,23 +251,18 @@ describe('QSH', () => {
         await inputAction(CTRL_A);
 
         const cursor =
-      qsh._for_test_only_do_not_ues.inputComponent &&
-      qsh._for_test_only_do_not_ues.inputComponent.state.cursorOffset;
+      qsh._for_test_only_do_not_ues.store &&
+      qsh._for_test_only_do_not_ues.store.cursorOffset;
 
         await timeout(WAIT_MS);
         chai.expect(cursor).to.equal(0);
 
         const completes =
-      qsh._for_test_only_do_not_ues.inputComponent &&
-      qsh._for_test_only_do_not_ues.inputComponent.state.completes;
+      qsh._for_test_only_do_not_ues.store &&
+      qsh._for_test_only_do_not_ues.store.completes;
 
         chai.expect(completes && completes.length).to.equal(0);
 
-        const completeTriggered =
-      qsh._for_test_only_do_not_ues.inputComponent &&
-      qsh._for_test_only_do_not_ues.inputComponent.state.completeTriggered;
-
-        chai.expect(completeTriggered).to.equal(null);
     });
 
     it('History hinting after complete must be right', async () => {
@@ -275,12 +276,12 @@ describe('QSH', () => {
         await inputAction(TAB);
 
         const hinting =
-      qsh._for_test_only_do_not_ues.inputComponent &&
-      qsh._for_test_only_do_not_ues.inputComponent.state.hinting;
+      qsh._for_test_only_do_not_ues.store &&
+      qsh._for_test_only_do_not_ues.store.hinting;
 
         const value =
-      qsh._for_test_only_do_not_ues.inputComponent &&
-      qsh._for_test_only_do_not_ues.inputComponent.props.value;
+      qsh._for_test_only_do_not_ues.store &&
+      qsh._for_test_only_do_not_ues.store.input;
 
         await timeout(WAIT_MS);
         if (hinting) {
@@ -348,11 +349,16 @@ describe('QSH', () => {
         await inputString('chmod +x ./test.sh');
         await inputAction(ENTER);
 
+        await timeout(WAIT_MS * 3);
+
         await inputString('./test');
         await inputAction(TAB);
         await inputString(' test');
 
-        chai.expect(qsh._for_test_only_do_not_ues.inputComponent && qsh._for_test_only_do_not_ues.inputComponent.props.value).contain('./test.sh test');
+        chai
+            .expect(qsh._for_test_only_do_not_ues.store &&
+          qsh._for_test_only_do_not_ues.store.input)
+            .contain('./test.sh test');
     });
 
     it('Hinting should always startsWith input', async () => {
@@ -365,8 +371,8 @@ describe('QSH', () => {
 
         // now should get hinting
         chai
-            .expect(qsh._for_test_only_do_not_ues.inputComponent &&
-          qsh._for_test_only_do_not_ues.inputComponent.state.hinting)
+            .expect(qsh._for_test_only_do_not_ues.store &&
+          qsh._for_test_only_do_not_ues.store.hinting)
             .to.contain('kerfile');
 
         // should give hinting containes kerfile or something
@@ -375,8 +381,8 @@ describe('QSH', () => {
 
         // now no hinting
         chai
-            .expect(qsh._for_test_only_do_not_ues.inputComponent &&
-          qsh._for_test_only_do_not_ues.inputComponent.state.hinting)
+            .expect(qsh._for_test_only_do_not_ues.store &&
+          qsh._for_test_only_do_not_ues.store.hinting)
             .to.equals('');
     });
 
@@ -401,10 +407,14 @@ describe('QSH', () => {
 
         // file99 can not be complete, but show in next page
 
-        chai.expect(qsh._for_test_only_do_not_ues.completeComponent.state.completesTextToDisplay.map(item => colors.unstyle(item))).not.contains('file99');
+        chai
+            .expect(qsh._for_test_only_do_not_ues.completeComponent.state.completesTextToDisplay.map(item => colors.unstyle(item)))
+            .not.contains('file99');
 
         await inputAction(TAB);
 
-        chai.expect(qsh._for_test_only_do_not_ues.completeComponent.state.completesTextToDisplay.map(item => colors.unstyle(item))).contains('file99');
+        chai
+            .expect(qsh._for_test_only_do_not_ues.completeComponent.state.completesTextToDisplay.map(item => colors.unstyle(item)))
+            .contains('file99');
     });
 });

@@ -10,7 +10,7 @@
     ],
     "scripts": {
         "dev": "tsc -w",
-        "test": "nyc mocha -r ts-node/register tests/**/*.test.ts",
+        "test": "nyc mocha -r ts-node/register tests/**/*.test.ts --exit",
         "lint": "eslint --fix --ext .tsx,.ts src tests",
         "pretty": "npx prettier-eslint --parser typescript --write src/**/*.ts src/**/*.tsx tests/**/*.ts test/**/*.tsx",
         "docker:build": "docker build . --tag qsh",
@@ -54,9 +54,7 @@
         "bash-parser": "^0.5.0",
         "branch-name": "^1.0.0",
         "chai-spies": "^1.0.0",
-        "color-rainbow": "0.0.0",
         "cross-spawn": "^6.0.5",
-        "enquirer": "^2.3.1",
         "executable": "^4.1.1",
         "exit-hook": "^2.2.0",
         "fix-path": "^2.1.0",
@@ -67,15 +65,14 @@
         "ink-text-input": "^3.2.1",
         "lodash": "^4.17.15",
         "memoizee": "^0.4.14",
-        "memory": "0.0.3",
-        "mock-stdio": "^1.0.3",
-        "powerline-statusbar": "^1.0.4",
+        "mobx": "^5.13.0",
+        "mobx-react-lite": "^1.4.1",
         "react": "^16.8.6",
-        "react-keep-alive": "^2.1.0",
         "shelljs": "^0.8.3",
         "systeminformation": "^4.14.4",
         "typed-emitter": "^0.1.0",
-        "typescript": "^3.5.3"
+        "typescript": "^3.5.3",
+        "undux": "^5.0.0-beta.22"
     },
     "devDependencies": {
         "@types/chai": "^4.1.7",
@@ -85,6 +82,7 @@
         "@types/memoizee": "^0.4.2",
         "@types/mocha": "^5.2.7",
         "@types/node": "^12.6.8",
+        "@types/react": "^16.8.25",
         "@types/shelljs": "^0.8.5",
         "@typescript-eslint/eslint-plugin": "^1.13.0",
         "@typescript-eslint/parser": "^1.13.0",
@@ -100,7 +98,6 @@
         "prettier": "^1.18.2",
         "prettier-eslint": "^9.0.0",
         "prettier-eslint-cli": "^5.0.0",
-        "pretty-quick": "^1.11.1",
         "ts-node": "^8.3.0",
         "typescript": "^3.5.3"
     }

@@ -8,7 +8,7 @@ import QSH from '../qsh';
 
 interface ICompletePublicProps {
     onChange: (str: string) => void;
-    onSubmit: (str: string) => void;
+    // onSubmit: (str: string) => void;
     items: CompleteItem[];
     width: number;
     marginLeft: number;
@@ -53,8 +53,8 @@ function Complete({
     onChange,
     width,
     marginLeft,
-    onSubmit,
-    qsh,
+    // onSubmit,
+    qsh
 }: ICompleteProps) {
     const MAX_ITEMS = AUTO_COMPLETE_MAX_ITEMS;
     const MAX_WIDTH = width;

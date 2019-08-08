@@ -20,6 +20,7 @@ export default class Term {
             const handleSubmit = async (text: string | null): Promise<void> => {
                 this._app && this._app.unmount();
                 await (this._app && this._app.waitUntilExit());
+
                 if (text) {
                     resolve(text);
                 } else {
@@ -29,6 +30,7 @@ export default class Term {
             this._app = render(
                 <StdinContext.Consumer>
                     {({ stdin }): JSX.Element => (
+                        // @ts-ignore
                         <RootComponent
                             stdin={stdin}
                             qsh={this._qsh}

@@ -1,9 +1,7 @@
 // @ts-ignore-all TS1206
 
-import React, { PureComponent, ReactElement } from 'react';
-import PropTypes from 'prop-types';
+import React, { PureComponent, ReactElement, useRef, useEffect, useContext } from 'react';
 import { Color, StdinContext, Box } from 'ink';
-import chalk from 'chalk';
 import _ from 'lodash';
 
 import colors, { reset } from 'ansi-colors';
@@ -47,288 +45,110 @@ import {
     FOCUS_OUT_EVENT
 } from './const';
 import { CompleteItem } from '../complete-engine';
+import Store from './store';
 
-const initalCompleteTriggered: number | null = null;
+import { observer, useLocalStore, useObserver } from 'mobx-react-lite';
 
-export class TextInput extends PureComponent<ITextInputProps> {
-    private static defaultProps = {
-        placeholder: '',
-        showCursor: true,
-        focus: true,
-        mask: undefined,
-        highlightPastedText: false,
-        onSubmit: undefined
+const NewTextInput = ({
+    onSubmit,
+    setRawMode,
+    stdin,
+    qsh,
+}: ITextInputProps) => {
+    const isMouted = useRef(true);
+    const width = process.stdout.columns || 80;
+
+    const { store } = useContext(Store);
+
+    const getComplete = async () => {
+        const text = store.input;
+        const triggetPos = store.completeTriggered;
+        const pos = store.cursorOffset;
+
+        if (triggetPos !== null) {
+            const result = await qsh.completeEngine.complete(text, triggetPos, pos);
+            // eslint-disable-next-line
+            store.completes = result;
+        }
     };
 
-    public state = {
-        cursorOffset: (this.props.value || '').length,
-        cursorWidth: 0,
-        completes: [] as CompleteItem[],
-        completeTriggered: initalCompleteTriggered,
-        showCursor: true,
-        hinting: '',
-        historyIndex: 0,
-        debug: null
+    const [, updateState] = React.useState();
+
+    const submit = (text: string | null) => {
+        const submitText = text;
+        clearComplete();
+        clearHinting();
+
+        updateState(() => {
+            onSubmit(submitText);
+            replaceValue('');
+        });
+
     };
 
-    private _isMounted: boolean = true;
-    private _currentInputForComplete = '';
+    const clearComplete = () => {
+        store.completes = [];
+        store.completeTriggered = null;
+    };
 
-    private get isMounted() {
-        return this._isMounted;
-    }
+    const triggerComplete = async (): Promise<void> => {
+        const text = store.input;
+        const pos = store.cursorOffset;
 
-    private set isMounted(val: boolean) {
-        this._isMounted = val;
-    }
-
-    private get width() {
-        return process.stdout.columns || 80;
-    }
-
-    public constructor(context: any, props: any) {
-        super(context, props);
-        this.handleCompleteChange = this.handleCompleteChange.bind(this);
-        this.handleInput = this.handleInput.bind(this);
-        this.handleCompleteSubmit = this.handleCompleteSubmit.bind(this);
-
-        const originSetState = this.setState;
-        this.setState = (...args) => {
-            if (this.isMounted) {
-                originSetState.apply(this, args);
-            }
-        };
-
-        this.props.qsh._for_test_only_do_not_ues.inputComponent = this;
-    }
-
-    public render() {
-        const {
-            value,
-            placeholder,
-            focus,
-            mask,
-            highlightPastedText,
-            prompt
-        } = this.props;
-        const {
-            cursorOffset,
-            cursorWidth,
-            showCursor,
-            completes,
-            completeTriggered,
-            hinting,
-            debug
-        } = this.state;
-        const hasValue = value.length > 0;
-        let renderedValue = value;
-        const cursorActualWidth = highlightPastedText ? cursorWidth : 0;
-
-        // Fake mouse cursor, because it's too inconvenient to deal with actual cursor and ansi escapes
-        if (showCursor && !mask && focus) {
-            renderedValue = value.length > 0 ? '' : chalk.inverse(' ');
-
-            let i = 0;
-
-            for (const char of value) {
-                if (i >= cursorOffset - cursorActualWidth && i <= cursorOffset) {
-                    renderedValue += chalk.inverse(char);
-                } else {
-                    renderedValue += char;
-                }
-
-                i++;
-            }
-
-            if (value.length > 0 && cursorOffset === value.length) {
-                if (hinting) {
-                    renderedValue += colors.inverse(colors.gray(hinting[0]));
-                    renderedValue += colors.gray(hinting.slice(1));
-                } else {
-                    renderedValue += colors.inverse(' ');
-                }
-            } else if (hinting) {
-                renderedValue += colors.gray(hinting);
-            }
+        if (qsh.completeEngine.trigger(text, pos)) {
+            store.completeTriggered = pos;
+            await getComplete();
+        } else {
+            clearComplete();
         }
+    };
 
-        if (mask) {
-            renderedValue = mask.repeat(renderedValue.length);
-        }
+    const clearHinting = () => {
+        store.hinting = '';
+    };
 
-        const renderCompleteWithCursor = (marginLeft: number) => {
-            return (
-                <Complete
-                    items={completes}
-                    onChange={this.handleCompleteChange}
-                    onSubmit={this.handleCompleteSubmit}
-                    width={AUTO_COMPLETE_WIDTH}
-                    marginLeft={marginLeft}
-                    qsh={this.props.qsh}
-                ></Complete>
-            );
-        };
+    const replaceValue = (result: string) => {
+        store.input = result;
+        clearComplete();
 
-        let marginLeft = (completeTriggered + this.promptLength) % this.width;
+        store.cursorOffset = store.input.length;
+        clearHinting();
+    };
 
-        if (marginLeft + AUTO_COMPLETE_WIDTH > this.width) {
-            marginLeft = this.width - AUTO_COMPLETE_WIDTH;
-        }
-
-        return (
-            <Box flexDirection="column">
-                <Box textWrap="wrap">
-                    <Box>
-                        {prompt}
-                        {placeholder
-                            ? hasValue
-                                ? renderedValue
-                                : placeholder
-                            : renderedValue}
-                        {/* {hinting ? <Color gray>{hinting}</Color> : ''} */}
-                    </Box>
-                </Box>
-                <Box>{renderCompleteWithCursor(marginLeft)}</Box>
-                <Box>{debug ? JSON.stringify(debug) : null}</Box>
-            </Box>
-        );
-    }
-
-    public componentDidMount() {
-        const { stdin, setRawMode } = this.props;
-
-        this.isMounted = true;
-        setRawMode(true);
-        stdin.on('data', this.handleInput);
-
-        this.triggerComplete('', 0);
-    }
-
-    public componentWillUnmount() {
-        const { stdin, setRawMode } = this.props;
-
-        this.isMounted = false;
-        stdin.removeListener('data', this.handleInput);
-        setRawMode(false);
-    }
-
-    private handleCompleteChange(val: string) {
-        this.completeValue(val);
-    }
-
-    private replaceValue(result: string) {
-        const { onChange } = this.props;
-        onChange(result);
-        this.clearComplete();
-
-        this.setState({
-            ...this.state,
-            cursorOffset: result.length,
-            hinting: ''
-        });
-    }
-
-    private completeValue(result: string) {
-        const { onChange } = this.props;
-        const { completeTriggered } = this.state;
-        const final = this.props.value.slice(0, completeTriggered || 0) + result;
-        onChange(final);
-        this.setState({
-            ...this.state,
-            cursorOffset: final.length,
-            hinting: ''
-        });
-    }
-
-    private handleCompleteSubmit(result: string) {
-        this.completeValue(result);
-        this.clearComplete();
-    }
-
-    private clearComplete() {
-        this.setState({
-            ...this.state,
-            completes: [],
-            completeTriggered: null
-        });
-    }
-
-    private get promptLength() {
-        return _.get(
-            _.last(colors.unstyle(this.props.prompt).split('\n')),
-            'length',
-            0
-        );
-    }
-
-    private handleCtrlC() {
-        this.submit(null);
-    }
-
-    private submit(value: string | null) {
-        const { onSubmit } = this.props;
-        this.setState(
-            {
-                ...this.state,
-                completes: [],
-                showCursor: false
-            },
-            () => {
-                if (onSubmit) {
-                    onSubmit(value);
-                }
-            }
-        );
-    }
-
-    private triggerHint(newValue?: string) {
-        const { value: _value, qsh } = this.props;
-
-        const value = newValue || _value;
-
-        if (!value) {
+    const triggerHint = () => {
+        if (!store.input) {
             return;
         }
 
         // hint for history
-        const item = _.find(qsh.history, item => item.toLowerCase().startsWith(value.toLowerCase()));
+        const item = _.find(qsh.history, item => item.toLowerCase().startsWith(store.input.toLowerCase()));
 
         if (item) {
-            this.setState({
-                hinting: item.slice(value.length)
-            });
+            store.hinting = (item.slice(store.input.length));
         } else {
-            this.setState({
-                hinting: ''
-            });
+            store.hinting = '';
         }
-    }
+    };
 
-    private handleInput(data: Buffer): void {
+    const completeValue = (result: string) => {
+        const final = store.input.slice(0, store.completeTriggered || 0) + result;
+
+        store.input = final;
+        store.hinting = '';
+        store.cursorOffset = final.length;
+    };
+
+
+    const handleInput = (data: Buffer) => {
         const OTHER_KEY = 'other_key';
-        const {
-            value: originalValue,
-            focus,
-            mask,
-            onChange,
-            onSubmit,
-            setRawMode
-        } = this.props;
-        const {
-            cursorOffset: originalCursorOffset,
-            showCursor,
-            completeTriggered,
-            hinting
-        } = this.state;
 
-        if (focus === false || this.isMounted === false) {
+        if (isMouted.current === false) {
             return;
         }
 
+
         const s = String(data);
 
-        let cursorOffset = originalCursorOffset;
-        let value = originalValue;
         let cursorWidth = 0;
 
         // some key will reset complete trigger, then give true to this var
@@ -338,115 +158,94 @@ export class TextInput extends PureComponent<ITextInputProps> {
 
         const KEY_MAP: any = {
             [OTHER_KEY]: (key: string) => {
-                value =
-          value.substr(0, cursorOffset) +
+                const newValue =
+          store.input.substr(0, store.cursorOffset) +
           s +
-          value.substr(cursorOffset, value.length);
-                cursorOffset += s.length;
+          store.input.substr(store.cursorOffset, store.input.length);
 
-                if (s.length > 1) {
-                    cursorWidth = s.length;
-                }
+                store.input = newValue;
+                store.cursorOffset = store.cursorOffset + s.length;
             },
             [ENTER]: (key: string) => {
                 setRawMode(false);
-                this.submit(originalValue);
+                submit(store.input);
             },
             [TAB]: (key: string) => {
                 // skipHint = true;
                 justReturn = true;
             },
             [ARROW_LEFT]: (key: string) => {
-                if (showCursor && !mask) {
-                    cursorOffset--;
-                }
+                store.cursorOffset = store.cursorOffset - 1;
             },
             [ARROW_RIGHT]: (key: string) => {
-                if (showCursor && !mask) {
-                    cursorOffset++;
-                }
+                store.cursorOffset = store.cursorOffset + 1;
             },
             [BACKSPACE]: () => {
-                value =
-          value.substr(0, cursorOffset - 1) +
-          value.substr(cursorOffset, value.length);
-                cursorOffset--;
+                store.input = store.input.substr(0, store.cursorOffset - 1) + store.input.substr(store.cursorOffset, store.input.length);
+                store.cursorOffset = store.cursorOffset - 1;
             },
 
             [ARROW_UP]: () => {
-                const { historyIndex } = this.state;
 
-                const { qsh } = this.props;
-
-                if (historyIndex >= qsh.history.length - 1) {
+                if (store.historyIndex >= qsh.history.length - 1) {
                     return;
                 }
 
                 resetComplete = true;
 
-                this.setState({
-                    ...this.state,
-                    historyIndex: historyIndex + 1
-                });
+                store.historyIndex = store.historyIndex + 1;
 
-                const item = qsh.history[historyIndex];
+                const item = qsh.history[store.historyIndex];
 
                 if (item) {
-                    this.replaceValue(item);
+                    replaceValue(item);
                 }
 
                 justReturn = true;
             },
 
             [ARROW_DOWN]: () => {
-                const { historyIndex } = this.state;
-
-                const { qsh } = this.props;
-
-                if (historyIndex <= 0) {
+                if (store.historyIndex <= 0) {
                     return;
                 }
 
                 resetComplete = true;
 
-                this.setState({
-                    ...this.state,
-                    historyIndex: historyIndex - 1
-                });
+                store.historyIndex = store.historyIndex - 1;
 
-                const item = qsh.history[historyIndex];
+                const item = qsh.history[store.historyIndex];
 
                 if (item) {
-                    this.replaceValue(item);
+                    replaceValue(item);
                 }
             },
 
             [DELETE]: () => {
-                value =
-          value.substr(0, cursorOffset - 1) +
-          value.substr(cursorOffset, value.length);
-                cursorOffset--;
+                store.input = store.input.substr(0, store.cursorOffset - 1) +
+          store.input.substr(store.cursorOffset, store.input.length);
 
-                if (cursorOffset - 1 <= (completeTriggered || 0)) {
+                store.cursorOffset = store.cursorOffset - 1;
+
+                if (store.cursorOffset - 1 <= (store.completeTriggered || 0)) {
                     resetComplete = true;
                 }
             },
 
             [CTRL_C]: () => {
-                this.submit(null);
+                submit(null);
             },
 
             [CTRL_A]: () => {
-                cursorOffset = 0;
-                this.clearComplete();
+                store.cursorOffset = 0;
+                clearComplete();
             },
 
             [FOCUS_IN_EVENT]: () => {
-                this.props.qsh.isFocus = true;
+                qsh.isFocus = true;
             },
 
             [FOCUS_OUT_EVENT]: () => {
-                this.props.qsh.isFocus = false;
+                qsh.isFocus = false;
             },
 
             ' ': () => {
@@ -463,64 +262,138 @@ export class TextInput extends PureComponent<ITextInputProps> {
             return;
         }
 
-        this.triggerHint(value);
+        triggerHint();
 
         if (resetComplete) {
-            this.triggerComplete(value, cursorOffset);
+            triggerComplete();
         }
 
-        if (cursorOffset < 0) {
-            cursorOffset = 0;
+        if (store.cursorOffset < 0) {
+            store.cursorOffset = 0;
         }
-        if (cursorOffset > value.length) {
-            cursorOffset = value.length;
+        if (store.cursorOffset > store.input.length) {
+            store.cursorOffset = store.input.length;
 
             resetComplete = true;
 
-            if (hinting) {
-                this.replaceValue(value + hinting);
+            if (store.hinting) {
+                replaceValue(store.input + store.hinting);
                 return;
             }
         }
-        this.setState({ cursorOffset, cursorWidth });
 
-        if (value !== originalValue) {
-            onChange(value);
 
-            if (completeTriggered === null && !resetComplete) {
-                this.triggerComplete(value, cursorOffset);
-            }
-            if (completeTriggered !== null && !resetComplete) {
-                this.getComplete(value, completeTriggered, cursorOffset);
-            }
+        if (store.completeTriggered === null && !resetComplete) {
+            triggerComplete();
         }
-    }
+        if (store.completeTriggered !== null && !resetComplete) {
+            getComplete();
+        }
+    };
 
-    private async getComplete(text: string, triggetPos: number, pos: number) {
-        const qsh = this.props.qsh;
+    useEffect(() => {
+        // componentDidMount
+        qsh._for_test_only_do_not_ues.store = store;
 
-        const result = await qsh.completeEngine.complete(text, triggetPos, pos);
+        setRawMode(true);
+        stdin.on('data', handleInput);
 
-        this.setState({
-            ...this.state,
-            completes: result
-        });
-    }
+        triggerComplete();
+        isMouted.current = true;
+        setRawMode(true);
+        stdin.removeListener('data', handleInput);
+        stdin.on('data', handleInput);
 
-    private async triggerComplete(text: string, pos: number): Promise<void> {
-        const qsh = this.props.qsh;
-        if (qsh.completeEngine.trigger(text, pos)) {
-            this.setState({
-                ...this.state,
-                completeTriggered: pos
-            });
+        store.historyIndex = -1;
+        store.completes = [];
+        store.completeTriggered = 0;
+        store.cursorOffset = 0;
+        store.input = '';
 
-            this.getComplete(text, pos, pos);
+
+        return function cleanup() {
+            stdin.removeListener('data', handleInput);
+        };
+    }, []);
+
+
+
+    // render
+    const hasValue = store.input.length > 0;
+    let renderedValue = store.input;
+
+    // Fake mouse cursor, because it's too inconvenient to deal with actual cursor and ansi escapes
+    renderedValue = store.input.length > 0 ? '' : colors.inverse(' ');
+
+    let i = 0;
+
+    for (const char of store.input) {
+        if (i >= store.cursorOffset && i <= store.cursorOffset) {
+            renderedValue += colors.inverse(char);
         } else {
-            this.clearComplete();
+            renderedValue += char;
         }
+
+        i++;
     }
-}
+
+    if (store.input.length > 0 && store.cursorOffset === store.input.length) {
+        if (store.hinting) {
+            renderedValue += colors.inverse(colors.gray(store.hinting[0]));
+            renderedValue += colors.gray(store.hinting.slice(1));
+        } else {
+            renderedValue += colors.inverse(' ');
+        }
+    } else if (store.hinting) {
+        renderedValue += colors.gray(store.hinting);
+    }
+
+    // const handleCompleteSubmit = (result: string) => {
+    //     completeValue(result);
+    //     clearComplete();
+    // };
+
+    const promptLength = () => {
+        return _.get(
+            _.last(colors.unstyle(store.prompt).split('\n')),
+            'length',
+            0
+        );
+    };
+
+    const renderCompleteWithCursor = (marginLeft: number) => {
+        return (store.completeTriggered !== null && store.completes.length > 0) ? (
+            <Complete
+                items={store.completes}
+                onChange={completeValue}
+                // onSubmit={handleCompleteSubmit}
+                width={AUTO_COMPLETE_WIDTH}
+                marginLeft={marginLeft}
+                qsh={qsh}
+            ></Complete>
+        ) : null;
+    };
+
+    let marginLeft = (store.completeTriggered + promptLength()) % width;
+
+    if (marginLeft + AUTO_COMPLETE_WIDTH > width) {
+        marginLeft = width - AUTO_COMPLETE_WIDTH;
+    }
+
+    return <Box flexDirection="column">
+        <Box textWrap="wrap">
+            <Box>
+                {store.prompt}
+                {hasValue ? renderedValue : null}
+            </Box>
+        </Box>
+        <Box>{renderCompleteWithCursor(marginLeft)}</Box>
+        <Box>{store.debug ? JSON.stringify(store.debug) : null}</Box>
+    </Box>;
+
+};
+
+const ObserverNewTextInput = observer(NewTextInput);
 
 export default class TextInputWithStdin extends PureComponent<
 ITextInputPublicProps
@@ -530,7 +403,7 @@ ITextInputPublicProps
             <StdinContext.Consumer>
                 {({ stdin, setRawMode }) => (
                     // @ts-ignore
-                    <TextInput {...this.props} stdin={stdin} setRawMode={setRawMode} />
+                    <ObserverNewTextInput {...this.props} stdin={stdin} setRawMode={setRawMode} />
                 )}
             </StdinContext.Consumer>
         );

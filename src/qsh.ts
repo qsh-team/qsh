@@ -23,13 +23,15 @@ import colors from 'ansi-colors';
 // @ts-ignore
 import branchName from 'branch-name';
 
-import execCommand from './command';
+// import execCommand from './command';
 import CompleteEngine from './complete-engine';
 import { initCompleteBackends } from './complete-backends';
-import { TextInput } from './components/input';
 import SignalRef from './singal-ref';
 import { FOCUS_IN, FOCUS_OUT } from './components/const';
 
+import {
+    QshStore,
+} from './components/store';
 
 type Color = 'black' | 'red' | 'green' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'white' | 'yellowBright';
 type AwesomeSymbolType = 'powerline-right' | 'icon-terminal' | 'icon-git-branch' | 'icon-memory' | 'icon-chip';
@@ -82,12 +84,12 @@ interface CommandMap {
 }
 
 interface TestOnlyObject {
-    inputComponent: TextInput| null;
     completeComponent: {
         state: {
             completesTextToDisplay: string[];
         };
     };
+    store: QshStore | null;
 }
 
 export default class QSH {
@@ -98,12 +100,12 @@ export default class QSH {
     public completeEngine: CompleteEngine = new CompleteEngine(this);
 
     public _for_test_only_do_not_ues: TestOnlyObject = {
-        inputComponent: null,
         completeComponent: {
             state: {
                 completesTextToDisplay: [],
             },
         },
+        store: null,
     };
 
 
@@ -231,12 +233,8 @@ export default class QSH {
     }
 
     public debug(obj: any) {
-        const component = this._for_test_only_do_not_ues.inputComponent;
-        if (component) {
-            component.setState({
-                ...component.state,
-                debug: obj,
-            });
+        if (this._for_test_only_do_not_ues.store) {
+            this._for_test_only_do_not_ues.store.debug = JSON.stringify(obj);
         }
     }
 
@@ -343,6 +341,7 @@ export default class QSH {
 
             if (input) {
                 try {
+                    const execCommand = (await import('./command')).default;
                     const { processExitPromise, execPromise, sigint } = execCommand(this, input);
                     _sigint = sigint;
                     await execPromise;

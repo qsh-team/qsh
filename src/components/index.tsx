@@ -3,7 +3,8 @@ import React, {
     useRef,
     useEffect,
     useLayoutEffect,
-    Component
+    Component,
+    useContext
 } from 'react';
 import { render, Box } from 'ink';
 
@@ -14,6 +15,9 @@ import Complete from './complete';
 
 import _ from 'lodash';
 
+import Store from './store';
+import { useObservable, useObserver, observer } from 'mobx-react-lite';
+
 interface RootComponentProps {
     onSubmit: (text: string | null) => void;
     qsh: QSH;
@@ -21,11 +25,8 @@ interface RootComponentProps {
 }
 
 const RootComponent = ({ onSubmit, qsh }: RootComponentProps) => {
-    const [input, setInput] = useState('');
-
-    const [promptCache, setPromptCache] = useState('');
-
     const isMounted = useRef(true);
+    const { store } = useContext(Store);
 
     useEffect(() => {
         const promoptCleanup = qsh.options.promopt((prompt: string) => {
@@ -33,7 +34,7 @@ const RootComponent = ({ onSubmit, qsh }: RootComponentProps) => {
                 return;
             }
             if (isMounted) {
-                setPromptCache(prompt);
+                store.prompt = prompt;
             }
         });
 
@@ -44,30 +45,30 @@ const RootComponent = ({ onSubmit, qsh }: RootComponentProps) => {
     }, []);
 
     const handleChange = async (text: string) => {
-        setInput(text);
+        store.input = text;
     };
 
     const handleSubmit = (text: string | null) => {
         onSubmit(text);
     };
 
-    const handleCompleteChange = () => {};
-
-    const handleCompleteSubmit = () => {};
-
     return (
         <Box>
             {/*
 // @ts-ignore */}
             <TextInput
-                value={input}
+                value={store.input}
                 onChange={handleChange}
                 onSubmit={handleSubmit}
                 qsh={qsh}
-                prompt={promptCache}
+                prompt={store.prompt}
             />
         </Box>
     );
 };
 
-export default RootComponent;
+const ObserverRootComponent = observer(RootComponent);
+
+export default (props: RootComponentProps) => {
+    return <ObserverRootComponent {...props} />;
+};

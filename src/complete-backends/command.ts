@@ -14,6 +14,7 @@ import { lsFilesToComplete, prefixFromPath } from './utils';
 import memoizee from 'memoizee';
 
 function getExecsCompletes(qsh: QSH, searchDirs: string[], keepPrefix = false) {
+
     const files = _.flatten(searchDirs.map(dir => {
         try {
             return shell.ls(dir).map(item => path.join(dir, item));
@@ -64,6 +65,7 @@ export default class CommandCompleteBackend extends CompleteBackend {
         if (line.indexOf('/') === -1) {
             const pathEnv = process.env.PATH || '';
             const searchDirs = pathEnv.split(':').filter(item => fs.existsSync(item));
+
             return cachedGetExecCompeletes(this._qsh, searchDirs);
         } else {
             const prefix = prefixFromPath(stringToReplace);
@@ -72,6 +74,7 @@ export default class CommandCompleteBackend extends CompleteBackend {
                 [path.join(prefix)],
                 true
             );
+
             return final;
         }
 
