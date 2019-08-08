@@ -36,14 +36,12 @@ async function inputString(str: string) {
     }
 
     await timeout(WAIT_MS);
-
 }
 
 async function inputAction(str: string) {
     await timeout(WAIT_MS);
     process.stdin.emit('data', Buffer.from(str));
     await timeout(WAIT_MS);
-
 }
 
 describe('QSH', () => {
@@ -90,7 +88,6 @@ describe('QSH', () => {
         process.env.HOME = home;
         shell.cd(cwd);
     });
-
 
     it('exit<enter> should call QSH.cleanup', async () => {
         const cleanup = chai.spy.on(qsh, 'cleanup');
@@ -210,9 +207,7 @@ describe('QSH', () => {
 
             await timeout(WAIT_MS * 3);
 
-            chai
-                .expect(qsh._for_test_only_do_not_ues.store.input)
-                .to.equals('ls');
+            chai.expect(qsh._for_test_only_do_not_ues.store.input).to.equals('ls');
 
             chai
                 .expect(qsh._for_test_only_do_not_ues.store.input.length)
@@ -262,7 +257,6 @@ describe('QSH', () => {
       qsh._for_test_only_do_not_ues.store.completes;
 
         chai.expect(completes && completes.length).to.equal(0);
-
     });
 
     it('History hinting after complete must be right', async () => {

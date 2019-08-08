@@ -28,7 +28,7 @@ const store: QshStore = {
     showCursor: true,
     hinting: '',
     historyIndex: -1,
-    debug: '',
+    debug: ''
 };
 
 export default React.createContext({ store: observable(store) });

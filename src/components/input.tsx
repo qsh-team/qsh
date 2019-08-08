@@ -1,6 +1,12 @@
 // @ts-ignore-all TS1206
 
-import React, { PureComponent, ReactElement, useRef, useEffect, useContext } from 'react';
+import React, {
+    PureComponent,
+    ReactElement,
+    useRef,
+    useEffect,
+    useContext
+} from 'react';
 import { Color, StdinContext, Box } from 'ink';
 import _ from 'lodash';
 
@@ -53,7 +59,7 @@ const NewTextInput = ({
     onSubmit,
     setRawMode,
     stdin,
-    qsh,
+    qsh
 }: ITextInputProps) => {
     const isMouted = useRef(true);
     const width = process.stdout.columns || 80;
@@ -68,7 +74,7 @@ const NewTextInput = ({
         if (triggetPos !== null) {
             const result = await qsh.completeEngine.complete(text, triggetPos, pos);
             // eslint-disable-next-line
-            store.completes = result;
+      store.completes = result;
         }
     };
 
@@ -83,7 +89,6 @@ const NewTextInput = ({
             onSubmit(submitText);
             replaceValue('');
         });
-
     };
 
     const clearComplete = () => {
@@ -124,7 +129,7 @@ const NewTextInput = ({
         const item = _.find(qsh.history, item => item.toLowerCase().startsWith(store.input.toLowerCase()));
 
         if (item) {
-            store.hinting = (item.slice(store.input.length));
+            store.hinting = item.slice(store.input.length);
         } else {
             store.hinting = '';
         }
@@ -138,14 +143,12 @@ const NewTextInput = ({
         store.cursorOffset = final.length;
     };
 
-
     const handleInput = (data: Buffer) => {
         const OTHER_KEY = 'other_key';
 
         if (isMouted.current === false) {
             return;
         }
-
 
         const s = String(data);
 
@@ -181,12 +184,13 @@ const NewTextInput = ({
                 store.cursorOffset = store.cursorOffset + 1;
             },
             [BACKSPACE]: () => {
-                store.input = store.input.substr(0, store.cursorOffset - 1) + store.input.substr(store.cursorOffset, store.input.length);
+                store.input =
+          store.input.substr(0, store.cursorOffset - 1) +
+          store.input.substr(store.cursorOffset, store.input.length);
                 store.cursorOffset = store.cursorOffset - 1;
             },
 
             [ARROW_UP]: () => {
-
                 if (store.historyIndex >= qsh.history.length - 1) {
                     return;
                 }
@@ -221,7 +225,8 @@ const NewTextInput = ({
             },
 
             [DELETE]: () => {
-                store.input = store.input.substr(0, store.cursorOffset - 1) +
+                store.input =
+          store.input.substr(0, store.cursorOffset - 1) +
           store.input.substr(store.cursorOffset, store.input.length);
 
                 store.cursorOffset = store.cursorOffset - 1;
@@ -282,7 +287,6 @@ const NewTextInput = ({
             }
         }
 
-
         if (store.completeTriggered === null && !resetComplete) {
             triggerComplete();
         }
@@ -292,7 +296,7 @@ const NewTextInput = ({
     };
 
     useEffect(() => {
-        // componentDidMount
+    // componentDidMount
         qsh._for_test_only_do_not_ues.store = store;
 
         setRawMode(true);
@@ -310,13 +314,10 @@ const NewTextInput = ({
         store.cursorOffset = 0;
         store.input = '';
 
-
         return function cleanup() {
             stdin.removeListener('data', handleInput);
         };
     }, []);
-
-
 
     // render
     const hasValue = store.input.length > 0;
@@ -354,19 +355,15 @@ const NewTextInput = ({
     // };
 
     const promptLength = () => {
-        return _.get(
-            _.last(colors.unstyle(store.prompt).split('\n')),
-            'length',
-            0
-        );
+        return _.get(_.last(colors.unstyle(store.prompt).split('\n')), 'length', 0);
     };
 
     const renderCompleteWithCursor = (marginLeft: number) => {
-        return (store.completeTriggered !== null && store.completes.length > 0) ? (
+        return store.completeTriggered !== null && store.completes.length > 0 ? (
             <Complete
                 items={store.completes}
                 onChange={completeValue}
-                // onSubmit={handleCompleteSubmit}
+        // onSubmit={handleCompleteSubmit}
                 width={AUTO_COMPLETE_WIDTH}
                 marginLeft={marginLeft}
                 qsh={qsh}
@@ -380,17 +377,18 @@ const NewTextInput = ({
         marginLeft = width - AUTO_COMPLETE_WIDTH;
     }
 
-    return <Box flexDirection="column">
-        <Box textWrap="wrap">
-            <Box>
-                {store.prompt}
-                {hasValue ? renderedValue : null}
+    return (
+        <Box flexDirection="column">
+            <Box textWrap="wrap">
+                <Box>
+                    {store.prompt}
+                    {hasValue ? renderedValue : null}
+                </Box>
             </Box>
+            <Box>{renderCompleteWithCursor(marginLeft)}</Box>
+            <Box>{store.debug ? JSON.stringify(store.debug) : null}</Box>
         </Box>
-        <Box>{renderCompleteWithCursor(marginLeft)}</Box>
-        <Box>{store.debug ? JSON.stringify(store.debug) : null}</Box>
-    </Box>;
-
+    );
 };
 
 const ObserverNewTextInput = observer(NewTextInput);
@@ -403,7 +401,11 @@ ITextInputPublicProps
             <StdinContext.Consumer>
                 {({ stdin, setRawMode }) => (
                     // @ts-ignore
-                    <ObserverNewTextInput {...this.props} stdin={stdin} setRawMode={setRawMode} />
+                    <ObserverNewTextInput
+                        {...this.props}
+                        stdin={stdin}
+                        setRawMode={setRawMode}
+                    />
                 )}
             </StdinContext.Consumer>
         );
