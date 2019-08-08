@@ -35,7 +35,7 @@ import {
 
 type Color = 'black' | 'red' | 'green' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'white' | 'yellowBright';
 type AwesomeSymbolType = 'powerline-right' | 'icon-terminal' | 'icon-git-branch' | 'icon-memory' | 'icon-chip'
-    | 'icon-history';
+| 'icon-history';
 
 const bgStyleTable = {
     black: colors.bgBlack,
@@ -310,11 +310,15 @@ export default class QSH {
     }
 
     private saveHistory() {
-        fs.writeFileSync(
-            QSH_HISTORY_FILE(),
-            this.history.slice(0, this.options.historyLength).join('\n'),
-            'utf-8'
-        );
+        try {
+            fs.writeFileSync(
+                QSH_HISTORY_FILE(),
+                this.history.slice(0, this.options.historyLength).join('\n'),
+                'utf-8'
+            );
+        } catch (e) {
+            // pass
+        }
     }
 
     private cleanup() {

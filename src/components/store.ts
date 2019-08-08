@@ -15,7 +15,6 @@ export interface QshStore {
     // hinting: string;
     historyIndex: number;
     debug: string;
-
 }
 
 const store: QshStore = {

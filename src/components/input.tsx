@@ -119,7 +119,7 @@ const NewTextInput = ({
         clearComplete();
 
         store.cursorOffset = store.input.length;
-        // clearHinting();
+    // clearHinting();
     };
     //
     // const triggerHint = () => {
@@ -332,7 +332,11 @@ const NewTextInput = ({
     let i = 0;
 
     for (const char of store.input) {
-        if (i >= store.cursorOffset && i <= store.cursorOffset && store.showCursor) {
+        if (
+            i >= store.cursorOffset &&
+      i <= store.cursorOffset &&
+      store.showCursor
+        ) {
             renderedValue += colors.inverse(char);
         } else {
             renderedValue += char;
@@ -341,13 +345,17 @@ const NewTextInput = ({
         i++;
     }
 
-    if (store.input.length > 0 && store.cursorOffset === store.input.length && store.showCursor) {
-        // if (store.hinting) {
-        //     renderedValue += colors.inverse(colors.gray(store.hinting[0]));
-        //     renderedValue += colors.gray(store.hinting.slice(1));
-        // } else {
+    if (
+        store.input.length > 0 &&
+    store.cursorOffset === store.input.length &&
+    store.showCursor
+    ) {
+    // if (store.hinting) {
+    //     renderedValue += colors.inverse(colors.gray(store.hinting[0]));
+    //     renderedValue += colors.gray(store.hinting.slice(1));
+    // } else {
         renderedValue += colors.inverse(' ');
-        // }
+    // }
     }
     // else if (store.hinting) {
     //     renderedValue += colors.gray(store.hinting);

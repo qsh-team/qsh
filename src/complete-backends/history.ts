@@ -34,8 +34,8 @@ export default class HistoryCompleteBackend extends CompleteBackend {
 
         const realLine = line.toLowerCase();
 
-        const items = this._qsh.history
-            .filter(item => item.toLowerCase().startsWith(realLine) && item.toLowerCase() !== realLine);
+        const items = this._qsh.history.filter(item => item.toLowerCase().startsWith(realLine) &&
+        item.toLowerCase() !== realLine);
 
         if (items.length > 0) {
             return _.uniq(items).map(item => {
@@ -43,12 +43,11 @@ export default class HistoryCompleteBackend extends CompleteBackend {
                     icon: this._qsh.helper.awesomeSymbol('icon-history'),
                     text: item.slice(triggerPos),
                     value: item.slice(triggerPos),
-                    weight: 999,
+                    weight: 999
                 };
             });
         } else {
             return [];
         }
-
     }
 }
