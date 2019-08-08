@@ -66,7 +66,7 @@ const NewTextInput = ({
 
     const { store } = useContext(Store);
 
-    const getComplete = async () => {
+    const doGetComplete = async () => {
         const text = store.input;
         const triggetPos = store.completeTriggered;
         const pos = store.cursorOffset;
@@ -74,8 +74,14 @@ const NewTextInput = ({
         if (triggetPos !== null) {
             const result = await qsh.completeEngine.complete(text, triggetPos, pos);
             // eslint-disable-next-line
-      store.completes = result;
+            store.completes = result;
         }
+    };
+
+    const lazyDoGetComplete = _.throttle(doGetComplete, 20);
+
+    const getComplete = async () => {
+        await lazyDoGetComplete();
     };
 
     const [, updateState] = React.useState();
@@ -89,7 +95,6 @@ const NewTextInput = ({
 
         updateState(() => {
             onSubmit(submitText);
-            replaceValue('');
         });
     };
 
@@ -304,7 +309,6 @@ const NewTextInput = ({
         setRawMode(true);
         stdin.on('data', handleInput);
 
-        triggerComplete();
         isMouted.current = true;
         setRawMode(true);
         stdin.removeListener('data', handleInput);
@@ -316,6 +320,8 @@ const NewTextInput = ({
         store.cursorOffset = 0;
         store.input = '';
         store.showCursor = true;
+
+        triggerComplete();
 
         return function cleanup() {
             stdin.removeListener('data', handleInput);

@@ -24,7 +24,7 @@ const timeout = async function(ms: number) {
     });
 };
 
-const WAIT_MS = 20;
+const WAIT_MS = 40;
 
 chai.use(spies);
 
@@ -413,5 +413,21 @@ describe('QSH', () => {
         chai
             .expect(qsh._for_test_only_do_not_ues.completeComponent.state.completesTextToDisplay.map(item => colors.unstyle(item)))
             .contains('file99');
+    });
+
+
+    it('Basic history complete', async () => {
+        await inputString('ls docker');
+        await inputAction(TAB);
+        await inputAction(ENTER);
+
+        chai.expect(qsh.history).contain('ls Dockerfile');
+
+        await inputString('l');
+        await inputAction(TAB);
+        await inputAction(ENTER);
+
+        chai.expect(qsh.history[0]).equal('ls Dockerfile');
+
     });
 });

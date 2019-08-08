@@ -40,7 +40,7 @@ function getExecsCompletes(qsh: QSH, searchDirs: string[], keepPrefix = false) {
     });
 }
 
-const cachedGetExecCompeletes = memoizee(getExecsCompletes, { maxAge: 1000 });
+const cachedGetExecCompeletes = memoizee(getExecsCompletes, { maxAge: 100 });
 
 export default class CommandCompleteBackend extends CompleteBackend {
     public trigger(line: string, triggerPos: number): boolean {
